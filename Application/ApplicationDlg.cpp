@@ -242,6 +242,8 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_COMMAND(ID_LOG_CLEAR, OnLogClear)
 	ON_UPDATE_COMMAND_UI(ID_LOG_CLEAR, OnUpdateLogClear)
 	ON_WM_DESTROY()
+	ON_COMMAND(ID_HISTOGRAM_RED, &CApplicationDlg::OnHistogramRed)
+	ON_UPDATE_COMMAND_UI(ID_HISTOGRAM_RED, &CApplicationDlg::OnUpdateHistogramRed)
 END_MESSAGE_MAP()
 
 
@@ -568,6 +570,26 @@ LRESULT CApplicationDlg::OnKickIdle(WPARAM wParam, LPARAM lParam)
 	return TRUE;
 }
 
+namespace
+{
+	void LoadAndCount(Gdiplus::Bitmap* &pBitmap, CString fileName, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+	{
+		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
+		red.assign(256, 0);
+		red.clear();
+
+		for (int x = 0; x < pBitmap->GetWidth(); x++)
+		{
+			for (int y = 0; y < pBitmap->GetHeight(); y++)
+			{
+				Gdiplus::Color color;
+				pBitmap->GetPixel(x, y, &color);
+				red[color.GetRed()]++;
+			}
+		}
+	}
+}
+
 void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
@@ -585,7 +607,7 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (!csFileName.IsEmpty())
 	{
-		m_pBitmap = Gdiplus::Bitmap::FromFile(csFileName);
+		LoadAndCount(m_pBitmap, csFileName, m_vHistRed, m_vHistGreen, m_vHistBlue, m_vHistJas);
 	}
 
 	m_ctrlImage.Invalidate();
@@ -617,4 +639,17 @@ void CApplicationDlg::OnLogClear()
 void CApplicationDlg::OnUpdateLogClear(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(::IsWindow(m_ctrlLog.m_hWnd) && m_ctrlLog.IsWindowVisible());
+}
+
+void CApplicationDlg::OnHistogramRed()
+{
+	m_bHistRed = ! m_bHistRed;
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateHistogramRed(CCmdUI *pCmdUI)
+{
+	// kod, kt. zabezpeci zakazenie
+	pCmdUI->Enable(m_pBitmap!=NULL);
 }

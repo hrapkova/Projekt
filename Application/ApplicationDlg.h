@@ -6,6 +6,7 @@
 
 #include "LogDlg.h"
 #include <GdiPlus.h>
+#include <vector>
 
 class CStaticImage : public CStatic
 {
@@ -48,6 +49,12 @@ public:
 protected:
 	HICON m_hIcon;
 
+	bool m_bHistRed;
+	std::vector<int> m_vHistRed;
+	std::vector<int> m_vHistGreen;
+	std::vector<int> m_vHistBlue;
+	std::vector<int> m_vHistJas;
+
 	// Generated message map functions
 	BOOL OnInitDialog() override;
 	afx_msg void OnSysCommand(UINT nID, LPARAM lParam);
@@ -88,4 +95,6 @@ public:
 	afx_msg void OnUpdateLogOpen(CCmdUI *pCmdUI);
 	afx_msg void OnLogClear();
 	afx_msg void OnUpdateLogClear(CCmdUI *pCmdUI);
+	afx_msg void OnHistogramRed();
+	afx_msg void OnUpdateHistogramRed(CCmdUI *pCmdUI);
 };
