@@ -50,6 +50,9 @@ protected:
 	HICON m_hIcon;
 
 	bool m_bHistRed;
+	bool m_bHistGreen;
+	bool m_bHistBlue;
+	bool m_bHistJas;
 	std::vector<int> m_vHistRed;
 	std::vector<int> m_vHistGreen;
 	std::vector<int> m_vHistBlue;
@@ -97,4 +100,10 @@ public:
 	afx_msg void OnUpdateLogClear(CCmdUI *pCmdUI);
 	afx_msg void OnHistogramRed();
 	afx_msg void OnUpdateHistogramRed(CCmdUI *pCmdUI);
+	afx_msg void OnHistogramGreen();
+	afx_msg void OnUpdateHistogramGreen(CCmdUI *pCmdUI);
+	afx_msg void OnHistogramBlue();
+	afx_msg void OnUpdateHistogramBlue(CCmdUI *pCmdUI);
+	afx_msg void OnHistogramAlpha();
+	afx_msg void OnUpdateHistogramAlpha(CCmdUI *pCmdUI);
 };

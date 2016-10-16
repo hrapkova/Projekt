@@ -244,6 +244,12 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_WM_DESTROY()
 	ON_COMMAND(ID_HISTOGRAM_RED, &CApplicationDlg::OnHistogramRed)
 	ON_UPDATE_COMMAND_UI(ID_HISTOGRAM_RED, &CApplicationDlg::OnUpdateHistogramRed)
+	ON_COMMAND(ID_HISTOGRAM_GREEN, &CApplicationDlg::OnHistogramGreen)
+	ON_UPDATE_COMMAND_UI(ID_HISTOGRAM_GREEN, &CApplicationDlg::OnUpdateHistogramGreen)
+	ON_COMMAND(ID_HISTOGRAM_BLUE, &CApplicationDlg::OnHistogramBlue)
+	ON_UPDATE_COMMAND_UI(ID_HISTOGRAM_BLUE, &CApplicationDlg::OnUpdateHistogramBlue)
+	ON_COMMAND(ID_HISTOGRAM_ALPHA, &CApplicationDlg::OnHistogramAlpha)
+	ON_UPDATE_COMMAND_UI(ID_HISTOGRAM_ALPHA, &CApplicationDlg::OnUpdateHistogramAlpha)
 END_MESSAGE_MAP()
 
 
@@ -575,18 +581,29 @@ namespace
 	void LoadAndCount(Gdiplus::Bitmap* &pBitmap, CString fileName, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
 	{
 		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
-		red.assign(256, 0);
 		red.clear();
+		green.clear(); 
+		blue.clear(); 
+		jas.clear();
+		red.assign(256, 0);
+		green.assign(256, 0); 
+		blue.assign(256, 0); 
+		jas.assign(256, 0);
 
 		for (int x = 0; x < pBitmap->GetWidth(); x++)
 		{
-			for (int y = 0; y < pBitmap->GetHeight(); y++)
+			for (int y = 0; y <pBitmap->GetHeight(); y++)
 			{
 				Gdiplus::Color color;
 				pBitmap->GetPixel(x, y, &color);
 				red[color.GetRed()]++;
+				green[color.GetGreen()]++;
+				blue[color.GetBlue()]++;
+				jas[color.GetAlpha()]++;
 			}
 		}
+
+		return;
 	}
 }
 
@@ -652,4 +669,43 @@ void CApplicationDlg::OnUpdateHistogramRed(CCmdUI *pCmdUI)
 {
 	// kod, kt. zabezpeci zakazenie
 	pCmdUI->Enable(m_pBitmap!=NULL);
+}
+
+
+void CApplicationDlg::OnHistogramGreen()
+{
+	m_bHistGreen = !m_bHistGreen;
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateHistogramGreen(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(m_pBitmap != NULL);
+}
+
+
+void CApplicationDlg::OnHistogramBlue()
+{
+	m_bHistBlue = !m_bHistBlue;
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateHistogramBlue(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(m_pBitmap != NULL);
+}
+
+
+void CApplicationDlg::OnHistogramAlpha()
+{
+	m_bHistJas = !m_bHistJas;
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateHistogramAlpha(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(m_pBitmap != NULL);
 }
