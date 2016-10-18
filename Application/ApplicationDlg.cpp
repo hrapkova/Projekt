@@ -265,6 +265,23 @@ void CApplicationDlg::OnDestroy()
 	}
 }
 
+namespace
+{
+	void DrawHist(CDC * pDC, double scaleX,double scaleY, std::vector<int>& vektor, COLORREF farba)
+	{
+		if (vektor.size() != 0)
+		{
+			for (int i = 0; i < 255; i++)
+			{
+				CRect rct(i*scaleX + 1, vektor[i] * scaleY, (i + 1)*scaleX + 1, 0);
+				pDC->FillSolidRect(rct, farba);
+			}
+
+		}
+		return;
+	}
+}
+
 LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 {
 	LPDRAWITEMSTRUCT lpDI = (LPDRAWITEMSTRUCT)wParam;
@@ -272,6 +289,52 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	CDC * pDC = CDC::FromHandle(lpDI->hDC);
 
 	pDC->FillSolidRect(&(lpDI->rcItem), RGB(255, 255, 255));
+	CRect rect;
+	GetClientRect(rect);
+
+	if (m_vHistRed.size() != 0)
+	{
+		int max = 0;
+		for (int i = 0; i < 255; i++)
+		{
+			if (m_vHistRed[i] > max)
+			{
+				max = m_vHistRed[i];
+			}
+			if (m_vHistGreen[i] > max)
+			{
+				max = m_vHistGreen[i];
+			}
+			if (m_vHistBlue[i] > max)
+			{
+				max = m_vHistBlue[i];
+			}
+			if (m_vHistJas[i] > max)
+			{
+				max = m_vHistJas[i];
+			}
+		}
+		double sirka = (double)rect.Width() / 256.;
+		double vyska = (double)rect.Height() / max;
+
+		if (m_bHistRed)
+		{
+			DrawHist(pDC, sirka, vyska, m_vHistRed, RGB(255, 0, 0));
+		}
+		if (m_bHistGreen)
+		{
+			DrawHist(pDC, sirka, vyska, m_vHistGreen, RGB(0, 255, 0));
+		}
+		if (m_bHistBlue)
+		{
+			DrawHist(pDC, sirka, vyska, m_vHistBlue, RGB(0, 0, 255));
+		}
+		if (m_bHistJas)
+		{
+			DrawHist(pDC, sirka, vyska, m_vHistJas, RGB(0, 0, 0));
+		}
+
+	}
 
 	CBrush brBlack(RGB(0, 0, 0));
 	pDC->FrameRect(&(lpDI->rcItem), &brBlack);
@@ -661,6 +724,9 @@ void CApplicationDlg::OnUpdateLogClear(CCmdUI *pCmdUI)
 void CApplicationDlg::OnHistogramRed()
 {
 	m_bHistRed = ! m_bHistRed;
+	/*m_bHistGreen = false;
+	m_bHistBlue = false;
+	m_bHistJas = false;*/
 	Invalidate();
 }
 
@@ -668,6 +734,15 @@ void CApplicationDlg::OnHistogramRed()
 void CApplicationDlg::OnUpdateHistogramRed(CCmdUI *pCmdUI)
 {
 	// kod, kt. zabezpeci zakazenie
+	if (m_bHistRed)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
+
 	pCmdUI->Enable(m_pBitmap!=NULL);
 }
 
@@ -675,6 +750,9 @@ void CApplicationDlg::OnUpdateHistogramRed(CCmdUI *pCmdUI)
 void CApplicationDlg::OnHistogramGreen()
 {
 	m_bHistGreen = !m_bHistGreen;
+	/*m_bHistRed = false;
+	m_bHistBlue = false;
+	m_bHistJas = false;*/
 	Invalidate();
 }
 
@@ -682,12 +760,23 @@ void CApplicationDlg::OnHistogramGreen()
 void CApplicationDlg::OnUpdateHistogramGreen(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_bHistGreen)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
 }
 
 
 void CApplicationDlg::OnHistogramBlue()
 {
 	m_bHistBlue = !m_bHistBlue;
+	/*m_bHistGreen = false;
+	m_bHistRed = false;
+	m_bHistJas = false;*/
 	Invalidate();
 }
 
@@ -695,12 +784,23 @@ void CApplicationDlg::OnHistogramBlue()
 void CApplicationDlg::OnUpdateHistogramBlue(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_bHistBlue)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
 }
 
 
 void CApplicationDlg::OnHistogramAlpha()
 {
 	m_bHistJas = !m_bHistJas;
+	/*m_bHistGreen = false;
+	m_bHistBlue = false;
+	m_bHistRed = false;*/
 	Invalidate();
 }
 
@@ -708,4 +808,12 @@ void CApplicationDlg::OnHistogramAlpha()
 void CApplicationDlg::OnUpdateHistogramAlpha(CCmdUI *pCmdUI)
 {
 	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_bHistJas)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
 }

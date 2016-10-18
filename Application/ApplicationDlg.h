@@ -49,10 +49,10 @@ public:
 protected:
 	HICON m_hIcon;
 
-	bool m_bHistRed;
-	bool m_bHistGreen;
-	bool m_bHistBlue;
-	bool m_bHistJas;
+	bool m_bHistRed = false;
+	bool m_bHistGreen = false;
+	bool m_bHistBlue = false;
+	bool m_bHistJas = false;
 	std::vector<int> m_vHistRed;
 	std::vector<int> m_vHistGreen;
 	std::vector<int> m_vHistBlue;
