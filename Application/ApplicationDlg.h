@@ -106,4 +106,5 @@ public:
 	afx_msg void OnUpdateHistogramBlue(CCmdUI *pCmdUI);
 	afx_msg void OnHistogramAlpha();
 	afx_msg void OnUpdateHistogramAlpha(CCmdUI *pCmdUI);
+	afx_msg void DrawHist(CDC * pDC, double scaleX, double scaleY, std::vector<int>& vektor, COLORREF farba);
 };

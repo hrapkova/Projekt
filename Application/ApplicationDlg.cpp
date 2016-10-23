@@ -11,6 +11,7 @@
 #include <vector>
 #include "Utils.h"
 #include <omp.h>
+#include <math.h>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -265,22 +266,27 @@ void CApplicationDlg::OnDestroy()
 	}
 }
 
-namespace
-{
-	void DrawHist(CDC * pDC, double scaleX,double scaleY, std::vector<int>& vektor, COLORREF farba)
+	void CApplicationDlg::DrawHist(CDC * pDC, double scaleX,double scaleY, std::vector<int>& vektor, COLORREF farba)
 	{
 		if (vektor.size() != 0)
 		{
 			for (int i = 0; i < 255; i++)
 			{
-				CRect rct(i*scaleX + 1, vektor[i] * scaleY, (i + 1)*scaleX + 1, 0);
-				pDC->FillSolidRect(rct, farba);
+				if (vektor[i] == 0)
+				{
+					CRect rct(i*scaleX + 1, m_ptHistogram.y, (i + 1)*scaleX + 1, m_ptHistogram.y);
+					pDC->FillSolidRect(rct, farba);
+				}
+				else
+				{
+					CRect rct(i*scaleX + 1,  m_ptHistogram.y - log10(vektor[i]) * scaleY, (i + 1)*scaleX + 1, m_ptHistogram.y);
+					pDC->FillSolidRect(rct, farba);
+				}
 			}
 
 		}
 		return;
 	}
-}
 
 LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 {
@@ -289,10 +295,9 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	CDC * pDC = CDC::FromHandle(lpDI->hDC);
 
 	pDC->FillSolidRect(&(lpDI->rcItem), RGB(255, 255, 255));
-	CRect rect;
-	GetClientRect(rect);
+	CRect rect(&(lpDI->rcItem));
 
-	if (m_vHistRed.size() != 0)
+	if (m_vHistRed.size() != 0 && m_vHistGreen.size() != 0 && m_vHistBlue.size() != 0 && m_vHistJas.size() != 0)
 	{
 		int max = 0;
 		for (int i = 0; i < 255; i++)
@@ -315,7 +320,7 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 			}
 		}
 		double sirka = (double)rect.Width() / 256.;
-		double vyska = (double)rect.Height() / max;
+		double vyska = (double)rect.Height() / log10(max);
 
 		if (m_bHistRed)
 		{
@@ -451,6 +456,10 @@ void CApplicationDlg::OnSize(UINT nType, int cx, int cy)
 
 void CApplicationDlg::OnClose()
 {
+	if (m_pBitmap != NULL)
+	{
+		delete m_pBitmap;
+	}
 	EndDialog(0);
 }
 
@@ -662,7 +671,7 @@ namespace
 				red[color.GetRed()]++;
 				green[color.GetGreen()]++;
 				blue[color.GetBlue()]++;
-				jas[color.GetAlpha()]++;
+				jas[0.2126 * color.GetRed() + 0.7152 * color.GetGreen() + 0.0722 * color.GetBlue()]++;
 			}
 		}
 
