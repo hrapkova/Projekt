@@ -30,4 +30,21 @@ namespace UnitTest
 			Assert::AreEqual(result.second[1], L"file2.name.ext", "filename 2");
 		}
 	};
+
+	TEST_CLASS(HistogramUnitTest)
+	{
+	public:
+
+		TEST_METHOD(TestHistogram)
+		{
+			std::vector<int> red, green, blue, jas;
+			red.assign(256, 0);
+			green.assign(256, 0);
+			blue.assign(256, 0);
+			jas.assign(256, 0);
+
+			CalcHistogram(nullptr, 0, 0, 0, red, green, blue, jas);
+		}
+
+	};
 }

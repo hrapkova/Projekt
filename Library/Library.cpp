@@ -29,3 +29,8 @@ LIBRARY_API std::pair< CString, std::vector<CString> > ParseFiles(LPCTSTR lpstrF
 {
 	return Utils::ParseFiles(lpstrFile);
 }
+
+LIBRARY_API void CalcHistogram(void* Scan0, int Stride, int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+{
+	return Utils::CalcHistogram(Scan0, Stride, Height, Width, red, green, blue, jas);
+}

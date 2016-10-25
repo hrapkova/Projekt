@@ -258,19 +258,13 @@ void CApplicationDlg::OnDestroy()
 {
 	m_ctrlLog.DestroyWindow();
 	Default();
-
-	if (m_pBitmap != nullptr)
-	{
-		delete m_pBitmap;
-		m_pBitmap = nullptr;
-	}
 }
 
 	void CApplicationDlg::DrawHist(CDC * pDC, double scaleX,double scaleY, std::vector<int>& vektor, COLORREF farba)
 	{
 		if (vektor.size() != 0)
 		{
-			for (int i = 0; i < 255; i++)
+			for (int i = 0; i <= 255; i++)
 			{
 				if (vektor[i] == 0)
 				{
@@ -300,7 +294,7 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	if (m_vHistRed.size() != 0 && m_vHistGreen.size() != 0 && m_vHistBlue.size() != 0 && m_vHistJas.size() != 0)
 	{
 		int max = 0;
-		for (int i = 0; i < 255; i++)
+		for (int i = 0; i <= 255; i++)
 		{
 			if (m_vHistRed[i] > max)
 			{
@@ -649,7 +643,7 @@ LRESULT CApplicationDlg::OnKickIdle(WPARAM wParam, LPARAM lParam)
 }
 
 namespace
-{
+{	
 	void LoadAndCount(Gdiplus::Bitmap* &pBitmap, CString fileName, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
 	{
 		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
@@ -662,18 +656,13 @@ namespace
 		blue.assign(256, 0); 
 		jas.assign(256, 0);
 
-		for (int x = 0; x < pBitmap->GetWidth(); x++)
-		{
-			for (int y = 0; y <pBitmap->GetHeight(); y++)
-			{
-				Gdiplus::Color color;
-				pBitmap->GetPixel(x, y, &color);
-				red[color.GetRed()]++;
-				green[color.GetGreen()]++;
-				blue[color.GetBlue()]++;
-				jas[0.2126 * color.GetRed() + 0.7152 * color.GetGreen() + 0.0722 * color.GetBlue()]++;
-			}
-		}
+		Gdiplus::Rect ret(0, 0, pBitmap->GetWidth(), pBitmap->GetHeight());
+		Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
+		pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
+
+		Utils::CalcHistogram(bmpData->Scan0, bmpData->Stride,ret.Height,ret.Width,red, green, blue, jas);
+
+		pBitmap->UnlockBits(bmpData);
 
 		return;
 	}

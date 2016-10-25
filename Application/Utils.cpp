@@ -40,4 +40,24 @@ namespace Utils
 		}
 
 	}
+
+	void CalcHistogram(void* Scan0, int Stride, int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+	{
+
+		uint32_t *pLine = (uint32_t*)Scan0;
+		for (int y = 0; y < Height; y++)
+		{
+			pLine = (uint32_t*)((uint8_t*)Scan0 + Stride*y);
+			for (int x = 0; x < Width; x++)
+			{
+				red[((*pLine) >> 16) & 0xff]++;
+				green[((*pLine) >> 8) & 0xff]++;
+				blue[(*pLine) & 0xff]++;
+				jas[0.2126 * (((*pLine) >> 16) & 0xff) + 0.7152 * (((*pLine) >> 8) & 0xff) + 0.0722 * ((*pLine) & 0xff)]++;
+				pLine++;
+			}
+		}
+
+		return;
+	}
 }
