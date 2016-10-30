@@ -55,7 +55,11 @@ namespace UnitTest
 					pBitmap[i][j] = 0xffffffff;
 				}
 			}
-			CalcHistogram(&pBitmap, 256 * 4, 256, 256, red, green, blue, jas);
+			CalcHistogram(pBitmap, 256 * 4, 256, 256, red, green, blue, jas);
+			//biela
+			Assert::AreEqual(red[255], 256 * 256, L"cerveny");
+			Assert::AreEqual(green[255], 256 * 256, L"zeleny");
+			Assert::AreEqual(blue[255], 256 * 256, L"modry");
 		}
 
 	};
