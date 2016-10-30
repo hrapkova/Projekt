@@ -9,7 +9,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 
 namespace UnitTest
 {
-	TEST_CLASS(ParseFilesUnitTest)
+	/*TEST_CLASS(ParseFilesUnitTest)
 	{
 	public:
 
@@ -29,7 +29,7 @@ namespace UnitTest
 			Assert::AreEqual(result.second[0], L"file1.name.ext", "filename 1");
 			Assert::AreEqual(result.second[1], L"file2.name.ext", "filename 2");
 		}
-	};
+	};*/
 
 	TEST_CLASS(HistogramUnitTest)
 	{
@@ -43,7 +43,19 @@ namespace UnitTest
 			blue.assign(256, 0);
 			jas.assign(256, 0);
 
-			CalcHistogram(nullptr, 0, 0, 0, red, green, blue, jas);
+			//CalcHistogram(nullptr, 0, 0, 0, red, green, blue, jas);
+			
+			UINT32 pBitmap[256][256];
+			memset (pBitmap, 0, sizeof(UINT32) * (256 * 256));
+
+			for (int i = 0; i < 256; i++)
+			{
+				for (int j = 0; j < 256; j++)
+				{
+					pBitmap[i][j] = 0xffffffff;
+				}
+			}
+			CalcHistogram(&pBitmap, 256 * 4, 256, 256, red, green, blue, jas);
 		}
 
 	};

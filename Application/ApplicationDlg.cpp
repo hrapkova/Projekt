@@ -450,10 +450,6 @@ void CApplicationDlg::OnSize(UINT nType, int cx, int cy)
 
 void CApplicationDlg::OnClose()
 {
-	if (m_pBitmap != NULL) 
-	{
-		delete m_pBitmap;
-	}
 	EndDialog(0);
 }
 
