@@ -12,6 +12,8 @@
 #include "Utils.h"
 #include <omp.h>
 #include <math.h>
+#include <thread>
+#include <atomic>
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -237,6 +239,7 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_WM_SIZING()
 	ON_MESSAGE(WM_DRAW_IMAGE, OnDrawImage)
 	ON_MESSAGE(WM_DRAW_HISTOGRAM, OnDrawHistogram)
+	ON_MESSAGE(WM_SET_BITMAP, OnSetBitmap)
 	ON_NOTIFY(LVN_ITEMCHANGED, IDC_FILE_LIST, OnLvnItemchangedFileList)
 	ON_COMMAND(ID_LOG_OPEN, OnLogOpen)
 	ON_UPDATE_COMMAND_UI(ID_LOG_OPEN, OnUpdateLogOpen)
@@ -664,6 +667,12 @@ namespace
 	}
 }
 
+LRESULT CApplicationDlg::OnSetBitmap(WPARAM wParam, LPARAM lParam)
+{
+	//vytvor znovu tuple
+	auto ptuple = (std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&>&)(wParam);
+}
+
 void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 {
 	LPNMLISTVIEW pNMLV = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
@@ -681,12 +690,48 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (!csFileName.IsEmpty())
 	{
-		LoadAndCount(m_pBitmap, csFileName, m_vHistRed, m_vHistGreen, m_vHistBlue, m_vHistJas);
+		std::thread thread([this, csFileName]()
+		{
+			std::atomic<std::thread::id> m_thread_id;
+			Gdiplus::Bitmap *pB = nullptr;
+			pB = Gdiplus::Bitmap::FromFile(csFileName);
+			std::vector<int> m_vR;
+			std::vector<int> m_vG;
+			std::vector<int> m_vB;
+			std::vector<int> m_vJ;
+			m_vR.clear();
+			m_vG.clear();
+			m_vB.clear();
+			m_vJ.clear();
+			m_vR.assign(256, 0);
+			m_vG.assign(256, 0);
+			m_vB.assign(256, 0);
+			m_vJ.assign(256, 0);
+			LoadAndCount(pB, csFileName, m_vR, m_vG, m_vB, m_vJ);
+			if (m_thread_id==std::this_thread::get_id())
+			{
+				std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&> tuple = std::make_tuple(pB, m_vR, m_vG, m_vB, m_vJ);
+				SendMessage(WM_SET_BITMAP, (WPARAM)&tuple);
+				/*m_pBitmap = pB;
+				m_vHistRed=std::move(m_vR);
+				m_vHistGreen=std::move(m_vG);
+				m_vHistBlue=std::move(m_vB);
+				m_vHistJas=std::move(m_vJ);
+				m_thread_id = std::thread::id();*/
+			}
+			else
+			{
+				delete pB;
+			}
+			m_ctrlImage.Invalidate();
+			m_ctrlHistogram.Invalidate();
+		});
+		thread.detach();
 	}
 
-	m_ctrlImage.Invalidate();
+	//m_ctrlImage.Invalidate();
 
-	m_ctrlHistogram.Invalidate();
+	//m_ctrlHistogram.Invalidate();
 
 	*pResult = 0;
 }

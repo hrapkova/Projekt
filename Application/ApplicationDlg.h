@@ -28,7 +28,8 @@ public:
 	enum
 	{
 		WM_DRAW_IMAGE = (WM_USER + 1),
-		WM_DRAW_HISTOGRAM
+		WM_DRAW_HISTOGRAM,
+		WM_SET_BITMAP
 	};
 
 	CApplicationDlg(CWnd* pParent = NULL);	// standard constructor
@@ -76,6 +77,7 @@ public:
 	afx_msg void OnSize(UINT nType, int cx, int cy);
 	afx_msg LRESULT OnDrawImage(WPARAM wParam, LPARAM lParam);
 	afx_msg LRESULT OnDrawHistogram(WPARAM wParam, LPARAM lParam);
+	afx_msg LRESULT OnSetBitmap(WPARAM wParam, LPARAM lParam);
 	afx_msg void OnDestroy();
 protected:
 	CListCtrl m_ctrlFileList;
