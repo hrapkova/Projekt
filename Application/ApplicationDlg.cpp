@@ -669,9 +669,51 @@ namespace
 
 LRESULT CApplicationDlg::OnSetBitmap(WPARAM wParam, LPARAM lParam)
 {
-	//vytvor znovu tuple
-	auto ptuple = (std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&>&)(wParam);
+	auto ptuple = (std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&>*)(wParam);
+	m_pBitmap = std::get<0>(*ptuple);
+	m_vHistRed = std::move(std::get<1>(*ptuple));
+	m_vHistGreen = std::move(std::get<2>(*ptuple));
+	m_vHistBlue = std::move(std::get<3>(*ptuple));
+	m_vHistJas = std::move(std::get<4>(*ptuple));
+
+	m_ctrlImage.Invalidate();
+	m_ctrlHistogram.Invalidate();
+
+	return TRUE;
 }
+
+	void CApplicationDlg::function(CString csFileName)
+	{
+			Gdiplus::Bitmap *pB = nullptr;
+			pB = Gdiplus::Bitmap::FromFile(csFileName);
+			std::vector<int> m_vR;
+			std::vector<int> m_vG;
+			std::vector<int> m_vB;
+			std::vector<int> m_vJ;
+			m_vR.clear();
+			m_vG.clear();
+			m_vB.clear();
+			m_vJ.clear();
+			m_vR.assign(256, 0);
+			m_vG.assign(256, 0);
+			m_vB.assign(256, 0);
+			m_vJ.assign(256, 0);
+
+			m_thread_id = std::this_thread::get_id();
+			LoadAndCount(pB, csFileName, m_vR, m_vG, m_vB, m_vJ);
+			if (m_thread_id == std::this_thread::get_id())
+			{
+				std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&> tuple(pB, m_vR, m_vG, m_vB, m_vJ);
+				SendMessage(WM_SET_BITMAP, (WPARAM)&tuple);
+				m_thread_id = std::thread::id();
+			}
+			else
+			{
+				delete pB;
+			}
+
+		return;
+	}
 
 void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 {
@@ -690,48 +732,9 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (!csFileName.IsEmpty())
 	{
-		std::thread thread([this, csFileName]()
-		{
-			std::atomic<std::thread::id> m_thread_id;
-			Gdiplus::Bitmap *pB = nullptr;
-			pB = Gdiplus::Bitmap::FromFile(csFileName);
-			std::vector<int> m_vR;
-			std::vector<int> m_vG;
-			std::vector<int> m_vB;
-			std::vector<int> m_vJ;
-			m_vR.clear();
-			m_vG.clear();
-			m_vB.clear();
-			m_vJ.clear();
-			m_vR.assign(256, 0);
-			m_vG.assign(256, 0);
-			m_vB.assign(256, 0);
-			m_vJ.assign(256, 0);
-			LoadAndCount(pB, csFileName, m_vR, m_vG, m_vB, m_vJ);
-			if (m_thread_id==std::this_thread::get_id())
-			{
-				std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&> tuple = std::make_tuple(pB, m_vR, m_vG, m_vB, m_vJ);
-				SendMessage(WM_SET_BITMAP, (WPARAM)&tuple);
-				/*m_pBitmap = pB;
-				m_vHistRed=std::move(m_vR);
-				m_vHistGreen=std::move(m_vG);
-				m_vHistBlue=std::move(m_vB);
-				m_vHistJas=std::move(m_vJ);
-				m_thread_id = std::thread::id();*/
-			}
-			else
-			{
-				delete pB;
-			}
-			m_ctrlImage.Invalidate();
-			m_ctrlHistogram.Invalidate();
-		});
+		std::thread thread(&CApplicationDlg::function, this, csFileName);
 		thread.detach();
 	}
-
-	//m_ctrlImage.Invalidate();
-
-	//m_ctrlHistogram.Invalidate();
 
 	*pResult = 0;
 }

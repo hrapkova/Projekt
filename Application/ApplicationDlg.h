@@ -7,6 +7,8 @@
 #include "LogDlg.h"
 #include <GdiPlus.h>
 #include <vector>
+#include <atomic>
+#include <thread>
 
 class CStaticImage : public CStatic
 {
@@ -58,6 +60,7 @@ protected:
 	std::vector<int> m_vHistGreen;
 	std::vector<int> m_vHistBlue;
 	std::vector<int> m_vHistJas;
+	std::atomic<std::thread::id> m_thread_id;
 
 	// Generated message map functions
 	BOOL OnInitDialog() override;
@@ -109,4 +112,5 @@ public:
 	afx_msg void OnHistogramAlpha();
 	afx_msg void OnUpdateHistogramAlpha(CCmdUI *pCmdUI);
 	afx_msg void DrawHist(CDC * pDC, double scaleX, double scaleY, std::vector<int>& vektor, COLORREF farba);
+	afx_msg void function(CString csFileName);
 };
