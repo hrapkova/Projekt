@@ -44,9 +44,9 @@ namespace UnitTest
 			jas.assign(256, 0);
 
 			//CalcHistogram(nullptr, 0, 0, 0, red, green, blue, jas);
-			
+
 			UINT32 pBitmap[256][256];
-			memset (pBitmap, 0, sizeof(UINT32) * (256 * 256));
+			memset(pBitmap, 0, sizeof(UINT32) * (256 * 256));
 
 			for (int i = 0; i < 256; i++)
 			{
@@ -57,9 +57,22 @@ namespace UnitTest
 			}
 			CalcHistogram(pBitmap, 256 * 4, 256, 256, red, green, blue, jas);
 			//biela
-			Assert::AreEqual(red[255], 256 * 256, L"cerveny");
-			Assert::AreEqual(green[255], 256 * 256, L"zeleny");
-			Assert::AreEqual(blue[255], 256 * 256, L"modry");
+			for (int i = 0; i <= 255; i++)
+			{
+				if (i == 255)
+				{
+					Assert::AreEqual(red[i], 256*256, L"cerveny255");
+					Assert::AreEqual(green[i], 256*256, L"zeleny255");
+					Assert::AreEqual(blue[i], 256*256, L"modry255");
+				}
+				else
+				{
+					Assert::AreEqual(red[i], 0, L"cerveny0");
+					Assert::AreEqual(green[i], 0, L"zeleny0");
+					Assert::AreEqual(blue[i], 0, L"modry0");
+				}
+				   
+			}
 		}
 
 	};
