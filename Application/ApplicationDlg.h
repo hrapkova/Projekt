@@ -61,6 +61,7 @@ protected:
 	std::vector<int> m_vHistBlue;
 	std::vector<int> m_vHistJas;
 	std::atomic<std::thread::id> m_thread_id;
+	int thread_num = 1;
 
 	// Generated message map functions
 	BOOL OnInitDialog() override;
@@ -112,5 +113,17 @@ public:
 	afx_msg void OnHistogramAlpha();
 	afx_msg void OnUpdateHistogramAlpha(CCmdUI *pCmdUI);
 	afx_msg void DrawHist(CDC * pDC, double scaleX, double scaleY, std::vector<int>& vektor, COLORREF farba);
-	afx_msg void function(CString csFileName);
+	afx_msg void SingleThread(CString csFileName);
+	afx_msg void OnThreads1();
+	afx_msg void OnThreads2();
+	afx_msg void OnThreads4();
+	afx_msg void OnThreads8();
+	afx_msg void OnThreads12();
+	afx_msg void OnThreads16();
+	afx_msg void OnUpdateThreads1(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateThreads2(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateThreads4(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateThreads8(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateThreads12(CCmdUI *pCmdUI);
+	afx_msg void OnUpdateThreads16(CCmdUI *pCmdUI);
 };

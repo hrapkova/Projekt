@@ -38,10 +38,20 @@ namespace UnitTest
 		TEST_METHOD(TestHistogram)
 		{
 			std::vector<int> red, green, blue, jas;
+			std::vector<int> red1, green1, blue1, jas1;
+			std::vector<int> red2, green2, blue2, jas2;
 			red.assign(256, 0);
 			green.assign(256, 0);
 			blue.assign(256, 0);
 			jas.assign(256, 0);
+			red1.assign(256, 0);
+			green1.assign(256, 0);
+			blue1.assign(256, 0);
+			jas1.assign(256, 0);
+			red2.assign(256, 0);
+			green2.assign(256, 0);
+			blue2.assign(256, 0);
+			jas2.assign(256, 0);
 
 			//CalcHistogram(nullptr, 0, 0, 0, red, green, blue, jas);
 
@@ -55,7 +65,15 @@ namespace UnitTest
 					pBitmap[i][j] = 0xffffffff;
 				}
 			}
-			CalcHistogram(pBitmap, 256 * 4, 256, 256, red, green, blue, jas);
+			CalcHistogram(pBitmap, 256 * 4, 0, 256 / 2, 256, red1, green1, blue1, jas1);
+			CalcHistogram(pBitmap, 256 * 4, 256 / 2, 256, 256, red2, green2, blue2, jas2);
+			for (int i = 0; i <= 255; i++)
+			{
+				red[i] = red1[i] + red2[i];
+				green[i] = green1[i] + green2[i];
+				blue[i] = blue1[i] + blue2[i];
+				jas[i] = jas1[i] + jas2[i];
+			}
 			//biela
 			for (int i = 0; i <= 255; i++)
 			{
