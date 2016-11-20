@@ -91,6 +91,35 @@ namespace UnitTest
 				}
 				   
 			}
+			//*****************************************************************
+			int num[6] = { 1,2,4,8,12,16 };
+			for (int j = 0; j < 6; j++)
+			{
+				std::vector<int> redfun, greenfun, bluefun, jasfun;
+				redfun.assign(256, 0);
+				greenfun.assign(256, 0);
+				bluefun.assign(256, 0);
+				jasfun.assign(256, 0);
+
+				funkcia(num[j], pBitmap, 256 * 4, 256, 256, redfun, greenfun, bluefun, jasfun);
+
+				for (int i = 0; i <= 255; i++)
+				{
+					if (i == 255)
+					{
+						Assert::AreEqual(redfun[i], 256 * 256, L"cerveny255fun");
+						Assert::AreEqual(greenfun[i], 256 * 256, L"zeleny255fun");
+						Assert::AreEqual(bluefun[i], 256 * 256, L"modry255fun");
+					}
+					else
+					{
+						Assert::AreEqual(redfun[i], 0, L"cerveny0fun");
+						Assert::AreEqual(greenfun[i], 0, L"zeleny0fun");
+						Assert::AreEqual(bluefun[i], 0, L"modry0fun");
+					}
+
+				}
+			}
 		}
 
 	};

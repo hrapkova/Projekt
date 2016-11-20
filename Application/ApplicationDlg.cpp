@@ -266,6 +266,8 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_8, &CApplicationDlg::OnUpdateThreads8)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_12, &CApplicationDlg::OnUpdateThreads12)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_16, &CApplicationDlg::OnUpdateThreads16)
+	ON_COMMAND(ID_THREADS_AUTO, &CApplicationDlg::OnThreadsAuto)
+	ON_UPDATE_COMMAND_UI(ID_THREADS_AUTO, &CApplicationDlg::OnUpdateThreadsAuto)
 END_MESSAGE_MAP()
 
 
@@ -655,28 +657,6 @@ LRESULT CApplicationDlg::OnKickIdle(WPARAM wParam, LPARAM lParam)
 
 namespace
 {	
-	void funkcia(int num, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
-	{
-		std::vector<std::vector<int> > reds;
-		std::vector<std::vector<int> > greens;
-		std::vector<std::vector<int> > blues;
-		std::vector<std::vector<int> > jass;
-		for (int i = 0; i <= num; i++)
-		{
-			reds[i].clear();
-			greens[i].clear();
-			blues[i].clear();
-			jass[i].clear();
-
-			reds[i].assign(256, 0);
-			greens[i].assign(256, 0);
-			blues[i].assign(256, 0);
-			jass[i].assign(256, 0);
-		};
-
-		return;
-	}
-	
 	void LoadAndCount(int thread_num, Gdiplus::Bitmap* &pBitmap, CString fileName, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
 	{
 		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
@@ -689,49 +669,12 @@ namespace
 		green.assign(256, 0); 
 		blue.assign(256, 0); 
 		jas.assign(256, 0);
-		//vektory pre thread1
-		std::vector<int> red1;
-		std::vector<int> green1;
-		std::vector<int> blue1;
-		std::vector<int> jas1;
-		red1.clear();
-		green1.clear();
-		blue1.clear();
-		jas1.clear();
-		red1.assign(256, 0);
-		green1.assign(256, 0);
-		blue1.assign(256, 0);
-		jas1.assign(256, 0);
-		//vektory pre thread2
-		std::vector<int> red2;
-		std::vector<int> green2;
-		std::vector<int> blue2;
-		std::vector<int> jas2;
-		red2.clear();
-		green2.clear();
-		blue2.clear();
-		jas2.clear();
-		red2.assign(256, 0);
-		green2.assign(256, 0);
-		blue2.assign(256, 0);
-		jas2.assign(256, 0);
 
 		Gdiplus::Rect ret(0, 0, pBitmap->GetWidth(), pBitmap->GetHeight());
 		Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
 		pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
 
-		funkcia(thread_num, red, green, blue, jas);
-		/*std::thread thread1(&Utils::CalcHistogram, bmpData->Scan0, bmpData->Stride, 0, ret.Height / 2, ret.Width, red1, green1, blue1, jas1);
-		std::thread thread2(&Utils::CalcHistogram, bmpData->Scan0, bmpData->Stride, ret.Height / 2, ret.Height, ret.Width, red2, green2, blue2, jas2);
-		thread1.join();
-		thread2.join();
-		for (int i = 0; i <= 255; i++)
-		{
-			red[i] = red1[i] + red2[i];
-			green[i] = green1[i] + green2[i];
-			blue[i] = blue1[i] + blue2[i];
-			jas[i] = jas1[i] + jas2[i];
-		}*/
+		Utils::funkcia(thread_num, bmpData->Scan0, bmpData->Stride, ret.Height, ret.Width, red, green, blue, jas);
 
 		pBitmap->UnlockBits(bmpData);
 
@@ -937,6 +880,7 @@ void CApplicationDlg::OnUpdateHistogramAlpha(CCmdUI *pCmdUI)
 void CApplicationDlg::OnThreads1()
 {
 	thread_num = 1;
+	thread_auto = false;
 	Invalidate();
 }
 
@@ -944,6 +888,7 @@ void CApplicationDlg::OnThreads1()
 void CApplicationDlg::OnThreads2()
 {
 	thread_num = 2;
+	thread_auto = false;
 	Invalidate();
 }
 
@@ -951,6 +896,7 @@ void CApplicationDlg::OnThreads2()
 void CApplicationDlg::OnThreads4()
 {
 	thread_num = 4;
+	thread_auto = false;
 	Invalidate();
 }
 
@@ -958,6 +904,7 @@ void CApplicationDlg::OnThreads4()
 void CApplicationDlg::OnThreads8()
 {
 	thread_num = 8;
+	thread_auto = false;
 	Invalidate();
 }
 
@@ -965,6 +912,7 @@ void CApplicationDlg::OnThreads8()
 void CApplicationDlg::OnThreads12()
 {
 	thread_num = 12;
+	thread_auto = false;
 	Invalidate();
 }
 
@@ -972,13 +920,14 @@ void CApplicationDlg::OnThreads12()
 void CApplicationDlg::OnThreads16()
 {
 	thread_num = 16;
+	thread_auto = false;
 	Invalidate();
 }
 
 
 void CApplicationDlg::OnUpdateThreads1(CCmdUI *pCmdUI)
 {
-	if (thread_num==1)
+	if (thread_num==1 && thread_auto == false)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -991,7 +940,7 @@ void CApplicationDlg::OnUpdateThreads1(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnUpdateThreads2(CCmdUI *pCmdUI)
 {
-	if (thread_num==2)
+	if (thread_num==2 && thread_auto == false)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1004,7 +953,7 @@ void CApplicationDlg::OnUpdateThreads2(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnUpdateThreads4(CCmdUI *pCmdUI)
 {
-	if (thread_num==4)
+	if (thread_num==4 && thread_auto == false)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1017,7 +966,7 @@ void CApplicationDlg::OnUpdateThreads4(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnUpdateThreads8(CCmdUI *pCmdUI)
 {
-	if (thread_num==8)
+	if (thread_num==8 && thread_auto == false)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1030,7 +979,7 @@ void CApplicationDlg::OnUpdateThreads8(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnUpdateThreads12(CCmdUI *pCmdUI)
 {
-	if (thread_num==12)
+	if (thread_num==12 && thread_auto == false)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1043,7 +992,28 @@ void CApplicationDlg::OnUpdateThreads12(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnUpdateThreads16(CCmdUI *pCmdUI)
 {
-	if (thread_num==16)
+	if (thread_num==16 && thread_auto==false)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
+}
+
+
+void CApplicationDlg::OnThreadsAuto()
+{
+	thread_num = std::thread::hardware_concurrency();
+	thread_auto = true;
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateThreadsAuto(CCmdUI *pCmdUI)
+{
+	if (thread_auto)
 	{
 		pCmdUI->SetCheck(1);
 	}

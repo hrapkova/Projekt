@@ -62,6 +62,7 @@ protected:
 	std::vector<int> m_vHistJas;
 	std::atomic<std::thread::id> m_thread_id;
 	int thread_num = 1;
+	bool thread_auto = false;
 
 	// Generated message map functions
 	BOOL OnInitDialog() override;
@@ -126,4 +127,6 @@ public:
 	afx_msg void OnUpdateThreads8(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateThreads12(CCmdUI *pCmdUI);
 	afx_msg void OnUpdateThreads16(CCmdUI *pCmdUI);
+	afx_msg void OnThreadsAuto();
+	afx_msg void OnUpdateThreadsAuto(CCmdUI *pCmdUI);
 };

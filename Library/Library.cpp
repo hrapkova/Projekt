@@ -34,3 +34,8 @@ LIBRARY_API void CalcHistogram(void* Scan0, int Stride, int start, int end, int 
 {
 	return Utils::CalcHistogram(Scan0, Stride, start, end, Width, red, green, blue, jas);
 }
+
+LIBRARY_API void funkcia(int num, void* Scan0, int Stride, int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+{
+	return Utils::funkcia(num, Scan0, Stride, Height, Width, red, green, blue, jas);
+}

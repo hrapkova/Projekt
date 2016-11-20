@@ -1,5 +1,6 @@
 #include "stdafx.h"
 #include "Utils.h"
+#include <thread>
 
 namespace Utils
 {
@@ -55,6 +56,55 @@ namespace Utils
 				blue[(*pLine) & 0xff]++;
 				jas[0.2126 * (((*pLine) >> 16) & 0xff) + 0.7152 * (((*pLine) >> 8) & 0xff) + 0.0722 * ((*pLine) & 0xff)]++;
 				pLine++;
+			}
+		}
+
+		return;
+	}
+
+	void funkcia(int num, void* Scan0, int Stride, int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+	{
+		std::vector<std::thread> threads;
+		std::vector<std::vector<int> > reds(num, std::vector<int>(256));
+		std::vector<std::vector<int> > greens(num, std::vector<int>(256));
+		std::vector<std::vector<int> > blues(num, std::vector<int>(256));
+		std::vector<std::vector<int> > jass(num, std::vector<int>(256));
+		for (int i = 0; i < num; i++)
+		{
+			reds[i].clear();
+			greens[i].clear();
+			blues[i].clear();
+			jass[i].clear();
+
+			reds[i].assign(256, 0);
+			greens[i].assign(256, 0);
+			blues[i].assign(256, 0);
+			jass[i].assign(256, 0);
+		}
+			for (int i = 0; i < num; i++)
+			{
+				if (i != num - 1)
+				{
+					threads.push_back(std::move(std::thread(&Utils::CalcHistogram, std::ref(Scan0), Stride, i*(Height / num), (i + 1) *(Height / num), Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]))));
+				}
+				else
+				{
+					threads.push_back(std::move(std::thread(&Utils::CalcHistogram, std::ref(Scan0), Stride, i*(Height / num), Height, Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]))));
+				}
+			}
+			for (int i = 0; i < num;i++)
+			{
+				threads[i].join();
+			}
+
+		for (int i = 0; i <= 255; i++)
+		{
+			for (int j = 0; j < num; j++)
+			{
+				red[i] = red[i] + reds[j][i];
+				green[i] = green[i] + greens[j][i];
+				blue[i] = blue[i] + blues[j][i];
+				jas[i] = jas[i] + jass[j][i];
 			}
 		}
 
