@@ -268,6 +268,8 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_16, &CApplicationDlg::OnUpdateThreads16)
 	ON_COMMAND(ID_THREADS_AUTO, &CApplicationDlg::OnThreadsAuto)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_AUTO, &CApplicationDlg::OnUpdateThreadsAuto)
+	ON_UPDATE_COMMAND_UI(ID_EFEKT_SOLARIZATION, &CApplicationDlg::OnUpdateEfektSolarization)
+	ON_COMMAND(ID_EFEKT_SOLARIZATION, &CApplicationDlg::OnEfektSolarization)
 END_MESSAGE_MAP()
 
 
@@ -657,7 +659,7 @@ LRESULT CApplicationDlg::OnKickIdle(WPARAM wParam, LPARAM lParam)
 
 namespace
 {	
-	void LoadAndCount(int thread_num, Gdiplus::Bitmap* &pBitmap, CString fileName, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+	void LoadAndCount(int thread_num, Gdiplus::Bitmap* &pBitmap, CString fileName, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
 	{
 		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
 		//vektory vysledne
@@ -674,7 +676,7 @@ namespace
 		Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
 		pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
 
-		Utils::funkcia(thread_num, bmpData->Scan0, bmpData->Stride, ret.Height, ret.Width, red, green, blue, jas);
+		Utils::funkcia(thread_num, bmpData->Scan0, bmpData->Stride, ret.Height, ret.Width, red, green, blue, jas, fnCancel);
 
 		pBitmap->UnlockBits(bmpData);
 
@@ -716,7 +718,8 @@ LRESULT CApplicationDlg::OnSetBitmap(WPARAM wParam, LPARAM lParam)
 			m_vJ.assign(256, 0);
 
 			m_thread_id = std::this_thread::get_id();
-			LoadAndCount(thread_num, pB, csFileName, m_vR, m_vG, m_vB, m_vJ);//po kazdom riadku resp. stlpci skontrolovat resp. ukoncit vypocet
+			auto t = std::this_thread::get_id();
+			LoadAndCount(thread_num, pB, csFileName, m_vR, m_vG, m_vB, m_vJ, [this, t]() {return m_thread_id != t; });
 			if (m_thread_id == std::this_thread::get_id())
 			{
 				std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&> tuple(pB, m_vR, m_vG, m_vB, m_vJ);
@@ -1021,4 +1024,24 @@ void CApplicationDlg::OnUpdateThreadsAuto(CCmdUI *pCmdUI)
 	{
 		pCmdUI->SetCheck(0);
 	}
+}
+
+
+void CApplicationDlg::OnUpdateEfektSolarization(CCmdUI *pCmdUI)
+{
+	m_effect = !m_effect;
+	if (m_effect)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
+}
+
+
+void CApplicationDlg::OnEfektSolarization()
+{
+
 }

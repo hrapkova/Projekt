@@ -42,12 +42,13 @@ namespace Utils
 
 	}
 
-	void CalcHistogram(void* Scan0, int Stride, int start, int end, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+	void CalcHistogram(void* Scan0, int Stride, int start, int end, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool ()> fnCancel)
 	{
 
 		uint32_t *pLine = (uint32_t*)Scan0;
 		for (int y = start; y < end; y++)
 		{
+			if (fnCancel()) { return; }
 			pLine = (uint32_t*)((uint8_t*)Scan0 + Stride*y);
 			for (int x = 0; x < Width; x++)
 			{
@@ -62,7 +63,7 @@ namespace Utils
 		return;
 	}
 
-	void funkcia(int num, void* Scan0, int Stride, int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+	void funkcia(int num, void* Scan0, int Stride, int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
 	{
 		std::vector<std::thread> threads;
 		std::vector<std::vector<int> > reds(num, std::vector<int>(256));
@@ -85,11 +86,11 @@ namespace Utils
 			{
 				if (i != num - 1)
 				{
-					threads.push_back(std::move(std::thread(&Utils::CalcHistogram, std::ref(Scan0), Stride, i*(Height / num), (i + 1) *(Height / num), Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]))));
+					threads.push_back(std::move(std::thread(&Utils::CalcHistogram, std::ref(Scan0), Stride, i*(Height / num), (i + 1) *(Height / num), Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]), fnCancel)));
 				}
 				else
 				{
-					threads.push_back(std::move(std::thread(&Utils::CalcHistogram, std::ref(Scan0), Stride, i*(Height / num), Height, Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]))));
+					threads.push_back(std::move(std::thread(&Utils::CalcHistogram, std::ref(Scan0), Stride, i*(Height / num), Height, Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]), fnCancel)));
 				}
 			}
 			for (int i = 0; i < num;i++)

@@ -16,6 +16,7 @@
 
 BEGIN_MESSAGE_MAP(CApplicationApp, CWinApp)
 	ON_COMMAND(ID_HELP, &CWinApp::OnHelp)
+	ON_COMMAND(ID_EFEKT_SOLARIZATION, &CApplicationApp::OnEfektSolarization)
 END_MESSAGE_MAP()
 
 

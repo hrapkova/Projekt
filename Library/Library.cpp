@@ -2,6 +2,7 @@
 //
 
 #include "stdafx.h"
+#include <functional>
 #include "Library.h"
 #include "../Application/Utils.h"
 
@@ -30,12 +31,12 @@ LIBRARY_API std::pair< CString, std::vector<CString> > ParseFiles(LPCTSTR lpstrF
 	return Utils::ParseFiles(lpstrFile);
 }
 
-LIBRARY_API void CalcHistogram(void* Scan0, int Stride, int start, int end, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+LIBRARY_API void CalcHistogram(void* Scan0, int Stride, int start, int end, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
 {
-	return Utils::CalcHistogram(Scan0, Stride, start, end, Width, red, green, blue, jas);
+	return Utils::CalcHistogram(Scan0, Stride, start, end, Width, red, green, blue, jas, fnCancel);
 }
 
-LIBRARY_API void funkcia(int num, void* Scan0, int Stride, int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+LIBRARY_API void funkcia(int num, void* Scan0, int Stride, int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
 {
-	return Utils::funkcia(num, Scan0, Stride, Height, Width, red, green, blue, jas);
+	return Utils::funkcia(num, Scan0, Stride, Height, Width, red, green, blue, jas,fnCancel);
 }
