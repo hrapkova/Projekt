@@ -707,7 +707,7 @@ LRESULT CApplicationDlg::OnSetBitmap(WPARAM wParam, LPARAM lParam)
 			std::vector<int> m_vR;
 			std::vector<int> m_vG;
 			std::vector<int> m_vB;
-			std::vector<int> m_vJ;
+			std::vector<int> m_vJ; 
 			m_vR.clear();
 			m_vG.clear();
 			m_vB.clear();
