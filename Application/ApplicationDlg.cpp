@@ -268,8 +268,8 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_16, &CApplicationDlg::OnUpdateThreads16)
 	ON_COMMAND(ID_THREADS_AUTO, &CApplicationDlg::OnThreadsAuto)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_AUTO, &CApplicationDlg::OnUpdateThreadsAuto)
-	ON_UPDATE_COMMAND_UI(ID_EFEKT_SOLARIZATION, &CApplicationDlg::OnUpdateEfektSolarization)
-	ON_COMMAND(ID_EFEKT_SOLARIZATION, &CApplicationDlg::OnEfektSolarization)
+	ON_COMMAND(ID_EFFECT_SOLARIZATION, &CApplicationDlg::OnEffectSolarization)
+	ON_UPDATE_COMMAND_UI(ID_EFFECT_SOLARIZATION, &CApplicationDlg::OnUpdateEffectSolarization)
 END_MESSAGE_MAP()
 
 
@@ -404,7 +404,13 @@ LRESULT CApplicationDlg::OnDrawImage(WPARAM wParam, LPARAM lParam)
 
 		Gdiplus::Graphics gr(lpDI->hDC);
 		Gdiplus::Rect destRect(rct.left + (rct.Width() - nWidth) / 2, rct.top + (rct.Height() - nHeight) / 2, nWidth, nHeight);
-		gr.DrawImage(m_pBitmap, destRect);
+		if (m_effect)
+		{
+			gr.DrawImage(m_pBitmap_effect, destRect);
+		}
+		else {
+			gr.DrawImage(m_pBitmap, destRect);
+		}
 	}
 
 	CBrush brBlack(RGB(0, 0, 0));
@@ -598,7 +604,6 @@ void CApplicationDlg::OnFileOpen()
 			delete m_pBitmap;
 			m_pBitmap = nullptr;
 		}
-
 		m_ctrlImage.Invalidate();
 		m_ctrlHistogram.Invalidate();
 
@@ -718,7 +723,8 @@ LRESULT CApplicationDlg::OnSetBitmap(WPARAM wParam, LPARAM lParam)
 			m_vJ.assign(256, 0);
 
 			m_thread_id = std::this_thread::get_id();
-			auto t = std::this_thread::get_id();
+			auto t= std::this_thread::get_id();
+			//auto t = std::thread::id();
 			LoadAndCount(thread_num, pB, csFileName, m_vR, m_vG, m_vB, m_vJ, [this, t]() {return m_thread_id != t; });
 			if (m_thread_id == std::this_thread::get_id())
 			{
@@ -743,7 +749,6 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 		delete m_pBitmap;
 		m_pBitmap = nullptr;
 	}
-
 	CString csFileName;
 	POSITION pos = m_ctrlFileList.GetFirstSelectedItemPosition();
 	if (pos)
@@ -1027,9 +1032,53 @@ void CApplicationDlg::OnUpdateThreadsAuto(CCmdUI *pCmdUI)
 }
 
 
-void CApplicationDlg::OnUpdateEfektSolarization(CCmdUI *pCmdUI)
+
+void CApplicationDlg::OnEffectSolarization()
 {
 	m_effect = !m_effect;
+	if(m_effect){
+	m_effect = true;
+		Gdiplus::Rect ret(0, 0, m_pBitmap->GetWidth(), m_pBitmap->GetHeight());
+
+		Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
+		m_pBitmap_effect = m_pBitmap->Clone(ret, PixelFormat32bppRGB);
+		m_pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
+
+		uint32_t *pLine = (uint32_t*)((uint8_t*)bmpData->Scan0);
+		for (int y = 0; y < m_pBitmap->GetHeight(); y++)
+		{
+			pLine = (uint32_t*)((uint8_t*)bmpData->Scan0 + bmpData->Stride*y);
+			for (int x = 0; x < m_pBitmap->GetWidth(); x++)
+			{
+				int r = 255 - (((*pLine) >> 16) & 0xff);
+				int g = 255 - (((*pLine) >> 8) & 0xff);
+				int b = 255 - ((*pLine) & 0xff);
+				if (r != m_threshold)
+				{
+					r = 255 - r;
+				}
+				if (g != m_threshold)
+				{
+					g = 255 - g;
+				}
+				if (b != m_threshold)
+				{
+					b = 255 - b;
+				}
+				m_pBitmap_effect->SetPixel(x, y, RGB(r,g,b));
+				pLine++;
+			}
+		}
+
+		m_pBitmap->UnlockBits(bmpData);
+	}
+	m_ctrlImage.Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateEffectSolarization(CCmdUI *pCmdUI)
+{
+	
 	if (m_effect)
 	{
 		pCmdUI->SetCheck(1);
@@ -1038,10 +1087,4 @@ void CApplicationDlg::OnUpdateEfektSolarization(CCmdUI *pCmdUI)
 	{
 		pCmdUI->SetCheck(0);
 	}
-}
-
-
-void CApplicationDlg::OnEfektSolarization()
-{
-
 }

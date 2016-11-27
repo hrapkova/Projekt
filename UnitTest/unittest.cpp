@@ -6,6 +6,7 @@ using namespace Microsoft::VisualStudio::CppUnitTestFramework;
 #include "../Library/Library.h"
 
 #include <vector>
+#include <thread>
 
 namespace UnitTest
 {
@@ -65,8 +66,9 @@ namespace UnitTest
 					pBitmap[i][j] = 0xffffffff;
 				}
 			}
-			CalcHistogram(pBitmap, 256 * 4, 0, 256 / 2, 256, red1, green1, blue1, jas1);
-			CalcHistogram(pBitmap, 256 * 4, 256 / 2, 256, 256, red2, green2, blue2, jas2);
+			auto t = std::this_thread::get_id();
+			CalcHistogram(pBitmap, 256 * 4, 0, 256 / 2, 256, red1, green1, blue1, jas1, [this, t]() {return false; });
+			CalcHistogram(pBitmap, 256 * 4, 256 / 2, 256, 256, red2, green2, blue2, jas2, [this, t]() {return false; });
 			for (int i = 0; i <= 255; i++)
 			{
 				red[i] = red1[i] + red2[i];
@@ -101,7 +103,8 @@ namespace UnitTest
 				bluefun.assign(256, 0);
 				jasfun.assign(256, 0);
 
-				funkcia(num[j], pBitmap, 256 * 4, 256, 256, redfun, greenfun, bluefun, jasfun);
+				auto t = std::this_thread::get_id();
+				funkcia(num[j], pBitmap, 256 * 4, 256, 256, redfun, greenfun, bluefun, jasfun, [this, t]() {return false; });
 
 				for (int i = 0; i <= 255; i++)
 				{

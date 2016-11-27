@@ -100,6 +100,7 @@ protected:
 	CLogDlg m_ctrlLog;
 
 	Gdiplus::Bitmap * m_pBitmap;
+	Gdiplus::Bitmap * m_pBitmap_effect;
 	DWORD m_nMaxThreads;
 public:
 	afx_msg void OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult);
@@ -131,6 +132,6 @@ public:
 	afx_msg void OnUpdateThreads16(CCmdUI *pCmdUI);
 	afx_msg void OnThreadsAuto();
 	afx_msg void OnUpdateThreadsAuto(CCmdUI *pCmdUI);
-	afx_msg void OnUpdateEfektSolarization(CCmdUI *pCmdUI);
-	afx_msg void OnEfektSolarization();
+	afx_msg void OnEffectSolarization();
+	afx_msg void OnUpdateEffectSolarization(CCmdUI *pCmdUI);
 };
