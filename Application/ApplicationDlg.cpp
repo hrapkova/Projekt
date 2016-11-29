@@ -268,8 +268,18 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_16, &CApplicationDlg::OnUpdateThreads16)
 	ON_COMMAND(ID_THREADS_AUTO, &CApplicationDlg::OnThreadsAuto)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_AUTO, &CApplicationDlg::OnUpdateThreadsAuto)
-	ON_COMMAND(ID_EFFECT_SOLARIZATION, &CApplicationDlg::OnEffectSolarization)
-	ON_UPDATE_COMMAND_UI(ID_EFFECT_SOLARIZATION, &CApplicationDlg::OnUpdateEffectSolarization)
+	ON_COMMAND(ID_SOLARIZATION_0, &CApplicationDlg::OnSolarization0)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_0, &CApplicationDlg::OnUpdateSolarization0)
+	ON_COMMAND(ID_SOLARIZATION_50, &CApplicationDlg::OnSolarization50)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_50, &CApplicationDlg::OnUpdateSolarization50)
+	ON_COMMAND(ID_SOLARIZATION_100, &CApplicationDlg::OnSolarization100)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_100, &CApplicationDlg::OnUpdateSolarization100)
+	ON_COMMAND(ID_SOLARIZATION_150, &CApplicationDlg::OnSolarization150)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_150, &CApplicationDlg::OnUpdateSolarization150)
+	ON_COMMAND(ID_SOLARIZATION_200, &CApplicationDlg::OnSolarization200)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_200, &CApplicationDlg::OnUpdateSolarization200)
+	ON_COMMAND(ID_SOLARIZATION_255, &CApplicationDlg::OnSolarization255)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_255, &CApplicationDlg::OnUpdateSolarization255)
 END_MESSAGE_MAP()
 
 
@@ -1031,23 +1041,24 @@ void CApplicationDlg::OnUpdateThreadsAuto(CCmdUI *pCmdUI)
 	}
 }
 
-
-
-void CApplicationDlg::OnEffectSolarization()
+void CApplicationDlg::Solarization()
 {
-	m_effect = !m_effect;
-	if(m_effect){
-	m_effect = true;
+	if (m_effect) {
+		m_effect = true;
 		Gdiplus::Rect ret(0, 0, m_pBitmap->GetWidth(), m_pBitmap->GetHeight());
 
 		Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
+		Gdiplus::BitmapData *bmpDataEffect = new Gdiplus::BitmapData();
 		m_pBitmap_effect = m_pBitmap->Clone(ret, PixelFormat32bppRGB);
 		m_pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
+		m_pBitmap_effect->LockBits(&ret, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, bmpDataEffect);
 
 		uint32_t *pLine = (uint32_t*)((uint8_t*)bmpData->Scan0);
+		uint32_t *pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0);
 		for (int y = 0; y < m_pBitmap->GetHeight(); y++)
 		{
 			pLine = (uint32_t*)((uint8_t*)bmpData->Scan0 + bmpData->Stride*y);
+			pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0 + bmpDataEffect->Stride*y);
 			for (int x = 0; x < m_pBitmap->GetWidth(); x++)
 			{
 				int r = 255 - (((*pLine) >> 16) & 0xff);
@@ -1065,21 +1076,152 @@ void CApplicationDlg::OnEffectSolarization()
 				{
 					b = 255 - b;
 				}
-				m_pBitmap_effect->SetPixel(x, y, RGB(r,g,b));
+				*pLine2 = ((r << 16) & 0xff0000) | ((g << 8) & 0xff00) | (b & 0xff);
+				//m_pBitmap_effect->SetPixel(x, y, RGB(r, g, b));
 				pLine++;
+				pLine2++;
 			}
 		}
 
 		m_pBitmap->UnlockBits(bmpData);
+		m_pBitmap_effect->UnlockBits(bmpDataEffect);
 	}
 	m_ctrlImage.Invalidate();
 }
 
-
-void CApplicationDlg::OnUpdateEffectSolarization(CCmdUI *pCmdUI)
+void CApplicationDlg::OnSolarization0()
 {
-	
-	if (m_effect)
+	m_threshold = 0;
+	m_effect = !m_effect;
+	Solarization();
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateSolarization0(CCmdUI *pCmdUI)
+{
+	m_effect = !m_effect;
+	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_threshold==0)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
+}
+
+
+void CApplicationDlg::OnSolarization50()
+{
+	m_threshold = 50;
+	m_effect = !m_effect;
+	Solarization();
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateSolarization50(CCmdUI *pCmdUI)
+{
+	m_effect = !m_effect;
+	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_threshold == 50)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
+}
+
+
+void CApplicationDlg::OnSolarization100()
+{
+	m_threshold = 100;
+	m_effect = !m_effect;
+	Solarization();
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateSolarization100(CCmdUI *pCmdUI)
+{
+	m_effect = !m_effect;
+	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_threshold == 100)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
+}
+
+
+void CApplicationDlg::OnSolarization150()
+{
+	m_threshold = 150;
+	m_effect = !m_effect;
+	Solarization();
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateSolarization150(CCmdUI *pCmdUI)
+{
+	m_effect = !m_effect;
+	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_threshold == 150)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
+}
+
+
+void CApplicationDlg::OnSolarization200()
+{
+	m_threshold = 200;
+	m_effect = !m_effect;
+	Solarization();
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateSolarization200(CCmdUI *pCmdUI)
+{
+	m_effect = !m_effect;
+	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_threshold == 200)
+	{
+		pCmdUI->SetCheck(1);
+	}
+	else
+	{
+		pCmdUI->SetCheck(0);
+	}
+}
+
+
+void CApplicationDlg::OnSolarization255()
+{
+	m_threshold = 255;
+	m_effect = !m_effect;
+	Solarization();
+	Invalidate();
+}
+
+
+void CApplicationDlg::OnUpdateSolarization255(CCmdUI *pCmdUI)
+{
+	pCmdUI->Enable(m_pBitmap != NULL);
+	if (m_threshold == 255 && m_effect)
 	{
 		pCmdUI->SetCheck(1);
 	}

@@ -63,7 +63,7 @@ protected:
 	std::atomic<std::thread::id> m_thread_id;
 	int thread_num = 1;
 	bool thread_auto = false;
-	double m_threshold = 25;//na konci zmen
+	double m_threshold;
 	bool m_effect = false;
 
 	// Generated message map functions
@@ -132,6 +132,17 @@ public:
 	afx_msg void OnUpdateThreads16(CCmdUI *pCmdUI);
 	afx_msg void OnThreadsAuto();
 	afx_msg void OnUpdateThreadsAuto(CCmdUI *pCmdUI);
-	afx_msg void OnEffectSolarization();
-	afx_msg void OnUpdateEffectSolarization(CCmdUI *pCmdUI);
+	afx_msg void OnSolarization0();
+	afx_msg void OnUpdateSolarization0(CCmdUI *pCmdUI);
+	afx_msg void OnSolarization50();
+	afx_msg void OnUpdateSolarization50(CCmdUI *pCmdUI);
+	afx_msg void OnSolarization100();
+	afx_msg void OnUpdateSolarization100(CCmdUI *pCmdUI);
+	afx_msg void OnSolarization150();
+	afx_msg void OnUpdateSolarization150(CCmdUI *pCmdUI);
+	afx_msg void OnSolarization200();
+	afx_msg void OnUpdateSolarization200(CCmdUI *pCmdUI);
+	afx_msg void OnSolarization255();
+	afx_msg void OnUpdateSolarization255(CCmdUI *pCmdUI);
+	afx_msg void Solarization();
 };
