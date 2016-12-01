@@ -253,32 +253,32 @@ BEGIN_MESSAGE_MAP(CApplicationDlg, CDialogEx)
 	ON_UPDATE_COMMAND_UI(ID_HISTOGRAM_BLUE, &CApplicationDlg::OnUpdateHistogramBlue)
 	ON_COMMAND(ID_HISTOGRAM_ALPHA, &CApplicationDlg::OnHistogramAlpha)
 	ON_UPDATE_COMMAND_UI(ID_HISTOGRAM_ALPHA, &CApplicationDlg::OnUpdateHistogramAlpha)
-	ON_COMMAND(ID_THREADS_1, &CApplicationDlg::OnThreads1)
-	ON_COMMAND(ID_THREADS_2, &CApplicationDlg::OnThreads2)
-	ON_COMMAND(ID_THREADS_4, &CApplicationDlg::OnThreads4)
-	ON_COMMAND(ID_THREADS_8, &CApplicationDlg::OnThreads8)
-	ON_COMMAND(ID_THREADS_12, &CApplicationDlg::OnThreads12)
-	ON_COMMAND(ID_THREADS_16, &CApplicationDlg::OnThreads16)
-	ON_UPDATE_COMMAND_UI(ID_THREADS_1, &CApplicationDlg::OnUpdateThreads1)
-	ON_UPDATE_COMMAND_UI(ID_THREADS_2, &CApplicationDlg::OnUpdateThreads2)
-	ON_UPDATE_COMMAND_UI(ID_THREADS_4, &CApplicationDlg::OnUpdateThreads4)
-	ON_UPDATE_COMMAND_UI(ID_THREADS_8, &CApplicationDlg::OnUpdateThreads8)
-	ON_UPDATE_COMMAND_UI(ID_THREADS_12, &CApplicationDlg::OnUpdateThreads12)
-	ON_UPDATE_COMMAND_UI(ID_THREADS_16, &CApplicationDlg::OnUpdateThreads16)
+	ON_COMMAND(ID_THREADS_1, &CApplicationDlg::OnThreads<1>)
+	ON_COMMAND(ID_THREADS_2, &CApplicationDlg::OnThreads<2>)
+	ON_COMMAND(ID_THREADS_4, &CApplicationDlg::OnThreads<4>)
+	ON_COMMAND(ID_THREADS_8, &CApplicationDlg::OnThreads<8>)
+	ON_COMMAND(ID_THREADS_12, &CApplicationDlg::OnThreads<12>)
+	ON_COMMAND(ID_THREADS_16, &CApplicationDlg::OnThreads<16>)
+	ON_UPDATE_COMMAND_UI(ID_THREADS_1, &CApplicationDlg::OnUpdateThreads<1>)
+	ON_UPDATE_COMMAND_UI(ID_THREADS_2, &CApplicationDlg::OnUpdateThreads<2>)
+	ON_UPDATE_COMMAND_UI(ID_THREADS_4, &CApplicationDlg::OnUpdateThreads<4>)
+	ON_UPDATE_COMMAND_UI(ID_THREADS_8, &CApplicationDlg::OnUpdateThreads<8>)
+	ON_UPDATE_COMMAND_UI(ID_THREADS_12, &CApplicationDlg::OnUpdateThreads<12>)
+	ON_UPDATE_COMMAND_UI(ID_THREADS_16, &CApplicationDlg::OnUpdateThreads<16>)
 	ON_COMMAND(ID_THREADS_AUTO, &CApplicationDlg::OnThreadsAuto)
 	ON_UPDATE_COMMAND_UI(ID_THREADS_AUTO, &CApplicationDlg::OnUpdateThreadsAuto)
-	ON_COMMAND(ID_SOLARIZATION_0, &CApplicationDlg::OnSolarization0)
-	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_0, &CApplicationDlg::OnUpdateSolarization0)
-	ON_COMMAND(ID_SOLARIZATION_50, &CApplicationDlg::OnSolarization50)
-	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_50, &CApplicationDlg::OnUpdateSolarization50)
-	ON_COMMAND(ID_SOLARIZATION_100, &CApplicationDlg::OnSolarization100)
-	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_100, &CApplicationDlg::OnUpdateSolarization100)
-	ON_COMMAND(ID_SOLARIZATION_150, &CApplicationDlg::OnSolarization150)
-	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_150, &CApplicationDlg::OnUpdateSolarization150)
-	ON_COMMAND(ID_SOLARIZATION_200, &CApplicationDlg::OnSolarization200)
-	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_200, &CApplicationDlg::OnUpdateSolarization200)
-	ON_COMMAND(ID_SOLARIZATION_255, &CApplicationDlg::OnSolarization255)
-	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_255, &CApplicationDlg::OnUpdateSolarization255)
+	ON_COMMAND(ID_SOLARIZATION_0, &CApplicationDlg::OnSolarization<0>)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_0, &CApplicationDlg::OnUpdateSolarization<0>)
+	ON_COMMAND(ID_SOLARIZATION_50, &CApplicationDlg::OnSolarization<50>)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_50, &CApplicationDlg::OnUpdateSolarization<50>)
+	ON_COMMAND(ID_SOLARIZATION_100, &CApplicationDlg::OnSolarization<100>)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_100, &CApplicationDlg::OnUpdateSolarization<100>)
+	ON_COMMAND(ID_SOLARIZATION_150, &CApplicationDlg::OnSolarization<150>)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_150, &CApplicationDlg::OnUpdateSolarization<150>)
+	ON_COMMAND(ID_SOLARIZATION_200, &CApplicationDlg::OnSolarization<200>)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_200, &CApplicationDlg::OnUpdateSolarization<200>)
+	ON_COMMAND(ID_SOLARIZATION_255, &CApplicationDlg::OnSolarization<255>)
+	ON_UPDATE_COMMAND_UI(ID_SOLARIZATION_255, &CApplicationDlg::OnUpdateSolarization<255>)
 END_MESSAGE_MAP()
 
 
@@ -310,6 +310,55 @@ void CApplicationDlg::OnDestroy()
 		return;
 	}
 
+	void CApplicationDlg::LogAxY(CDC * pDC,CRect* rect,std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas)
+	{
+		if (red.size() != 0 && green.size() != 0 && blue.size() != 0 && jas.size() != 0)
+		{
+			int max = 0;
+			for (int i = 0; i <= 255; i++)
+			{
+				if (red[i] > max)
+				{
+					max = red[i];
+				}
+				if (green[i] > max)
+				{
+					max = green[i];
+				}
+				if (blue[i] > max)
+				{
+					max = blue[i];
+				}
+				if (jas[i] > max)
+				{
+					max = jas[i];
+				}
+			}
+			double sirka = (double)rect->Width() / 256.;
+			double vyska = (double)rect->Height() / log10(max);
+
+			if (m_bHistRed)
+			{
+				DrawHist(pDC, sirka, vyska, red, RGB(255, 0, 0));
+			}
+			if (m_bHistGreen)
+			{
+				DrawHist(pDC, sirka, vyska, green, RGB(0, 255, 0));
+			}
+			if (m_bHistBlue)
+			{
+				DrawHist(pDC, sirka, vyska, blue, RGB(0, 0, 255));
+			}
+			if (m_bHistJas)
+			{
+				DrawHist(pDC, sirka, vyska, jas, RGB(0, 0, 0));
+			}
+
+		}
+		
+		return;
+	}
+
 LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 {
 	LPDRAWITEMSTRUCT lpDI = (LPDRAWITEMSTRUCT)wParam;
@@ -319,49 +368,58 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	pDC->FillSolidRect(&(lpDI->rcItem), RGB(255, 255, 255));
 	CRect rect(&(lpDI->rcItem));
 
-	if (m_vHistRed.size() != 0 && m_vHistGreen.size() != 0 && m_vHistBlue.size() != 0 && m_vHistJas.size() != 0)
+	if(!m_effect)
 	{
-		int max = 0;
-		for (int i = 0; i <= 255; i++)
+		LogAxY(pDC, &rect, m_vHistRed, m_vHistGreen, m_vHistBlue, m_vHistJas);
+		/*if (m_vHistRed.size() != 0 && m_vHistGreen.size() != 0 && m_vHistBlue.size() != 0 && m_vHistJas.size() != 0)
 		{
-			if (m_vHistRed[i] > max)
+			int max = 0;
+			for (int i = 0; i <= 255; i++)
 			{
-				max = m_vHistRed[i];
+				if (m_vHistRed[i] > max)
+				{
+					max = m_vHistRed[i];
+				}
+				if (m_vHistGreen[i] > max)
+				{
+					max = m_vHistGreen[i];
+				}
+				if (m_vHistBlue[i] > max)
+				{
+					max = m_vHistBlue[i];
+				}
+				if (m_vHistJas[i] > max)
+				{
+					max = m_vHistJas[i];
+				}
 			}
-			if (m_vHistGreen[i] > max)
-			{
-				max = m_vHistGreen[i];
-			}
-			if (m_vHistBlue[i] > max)
-			{
-				max = m_vHistBlue[i];
-			}
-			if (m_vHistJas[i] > max)
-			{
-				max = m_vHistJas[i];
-			}
-		}
-		double sirka = (double)rect.Width() / 256.;
-		double vyska = (double)rect.Height() / log10(max);
+			double sirka = (double)rect.Width() / 256.;
+			double vyska = (double)rect.Height() / log10(max);
 
-		if (m_bHistRed)
-		{
-			DrawHist(pDC, sirka, vyska, m_vHistRed, RGB(255, 0, 0));
-		}
-		if (m_bHistGreen)
-		{
-			DrawHist(pDC, sirka, vyska, m_vHistGreen, RGB(0, 255, 0));
-		}
-		if (m_bHistBlue)
-		{
-			DrawHist(pDC, sirka, vyska, m_vHistBlue, RGB(0, 0, 255));
-		}
-		if (m_bHistJas)
-		{
-			DrawHist(pDC, sirka, vyska, m_vHistJas, RGB(0, 0, 0));
-		}
+			if (m_bHistRed)
+			{
+				DrawHist(pDC, sirka, vyska, m_vHistRed, RGB(255, 0, 0));
+			}
+			if (m_bHistGreen)
+			{
+				DrawHist(pDC, sirka, vyska, m_vHistGreen, RGB(0, 255, 0));
+			}
+			if (m_bHistBlue)
+			{
+				DrawHist(pDC, sirka, vyska, m_vHistBlue, RGB(0, 0, 255));
+			}
+			if (m_bHistJas)
+			{
+				DrawHist(pDC, sirka, vyska, m_vHistJas, RGB(0, 0, 0));
+			}
 
+		}*/
 	}
+	else
+	{
+		LogAxY(pDC, &rect, m_vHistRed_effect, m_vHistGreen_effect, m_vHistBlue_effect, m_vHistJas_effect);
+	}
+
 
 	CBrush brBlack(RGB(0, 0, 0));
 	pDC->FrameRect(&(lpDI->rcItem), &brBlack);
@@ -654,7 +712,7 @@ void CApplicationDlg::OnUpdateFileClose(CCmdUI *pCmdUI)
 
 LRESULT CApplicationDlg::OnKickIdle(WPARAM wParam, LPARAM lParam)
 {
-	CMenu* pMainMenu = GetMenu();
+	/*CMenu* pMainMenu = GetMenu();
 	CCmdUI cmdUI;
 	for (UINT n = 0; n < (UINT)pMainMenu->GetMenuItemCount(); ++n)
 	{
@@ -668,6 +726,41 @@ LRESULT CApplicationDlg::OnKickIdle(WPARAM wParam, LPARAM lParam)
 			cmdUI.DoUpdate(this, FALSE);
 		}
 	}
+	return TRUE;*/
+
+	// stack for menu
+	std::vector<CMenu*> menus{ GetMenu() };    //starting with main menu
+
+	CCmdUI cmdUI;
+	while (!menus.empty())
+	{
+		// pop menu from stack
+		CMenu * pMenu = menus.back();
+		menus.pop_back();
+
+		cmdUI.m_nIndexMax = pMenu->GetMenuItemCount();
+
+		// "recursively" crawl submenus / items
+		for (int i = 0; i < pMenu->GetMenuItemCount(); ++i)
+		{
+			cmdUI.m_nID = pMenu->GetMenuItemID(i);
+
+			if (cmdUI.m_nID == (UINT)-1)
+			{
+				CMenu* pSubMenu = pMenu->GetSubMenu(i);
+				if (pSubMenu)
+					menus.push_back(pSubMenu);       // submenu - push to stack
+			}
+			else
+			{
+				// call OnUpdate... handler for menu item
+				cmdUI.m_nIndex = i;
+				cmdUI.m_pMenu = pMenu;
+				cmdUI.DoUpdate(this, FALSE);
+			}
+		}
+	}
+
 	return TRUE;
 }
 
@@ -895,58 +988,9 @@ void CApplicationDlg::OnUpdateHistogramAlpha(CCmdUI *pCmdUI)
 	}
 }
 
-
-void CApplicationDlg::OnThreads1()
+template<int threshold> void CApplicationDlg::OnUpdateSolarization(CCmdUI * pCmdUI)
 {
-	thread_num = 1;
-	thread_auto = false;
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnThreads2()
-{
-	thread_num = 2;
-	thread_auto = false;
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnThreads4()
-{
-	thread_num = 4;
-	thread_auto = false;
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnThreads8()
-{
-	thread_num = 8;
-	thread_auto = false;
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnThreads12()
-{
-	thread_num = 12;
-	thread_auto = false;
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnThreads16()
-{
-	thread_num = 16;
-	thread_auto = false;
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnUpdateThreads1(CCmdUI *pCmdUI)
-{
-	if (thread_num==1 && thread_auto == false)
+	if (m_threshold == threshold && m_effect)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -956,10 +1000,27 @@ void CApplicationDlg::OnUpdateThreads1(CCmdUI *pCmdUI)
 	}
 }
 
-
-void CApplicationDlg::OnUpdateThreads2(CCmdUI *pCmdUI)
+template<int threshold> void CApplicationDlg::OnSolarization()
 {
-	if (thread_num==2 && thread_auto == false)
+	if (m_threshold == threshold && m_effect)
+	{
+		m_effect = !m_effect;
+	}
+	else
+	{
+		m_threshold = threshold;
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, m_vHistRed_effect, m_vHistGreen_effect, m_vHistBlue_effect, m_vHistJas_effect, [this, t]() {return m_thread_id != t; });
+	}
+
+	Invalidate();
+}
+
+template<int num> void CApplicationDlg::OnUpdateThreads(CCmdUI * pCmdUI)
+{
+	if (thread_num == num && thread_auto == false)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -969,58 +1030,12 @@ void CApplicationDlg::OnUpdateThreads2(CCmdUI *pCmdUI)
 	}
 }
 
-
-void CApplicationDlg::OnUpdateThreads4(CCmdUI *pCmdUI)
+template<int num> void CApplicationDlg::OnThreads()
 {
-	if (thread_num==4 && thread_auto == false)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
+	thread_num = num;
+	thread_auto = true;
+	Invalidate();
 }
-
-
-void CApplicationDlg::OnUpdateThreads8(CCmdUI *pCmdUI)
-{
-	if (thread_num==8 && thread_auto == false)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
-
-void CApplicationDlg::OnUpdateThreads12(CCmdUI *pCmdUI)
-{
-	if (thread_num==12 && thread_auto == false)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
-
-void CApplicationDlg::OnUpdateThreads16(CCmdUI *pCmdUI)
-{
-	if (thread_num==16 && thread_auto==false)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
 
 void CApplicationDlg::OnThreadsAuto()
 {
@@ -1033,242 +1048,6 @@ void CApplicationDlg::OnThreadsAuto()
 void CApplicationDlg::OnUpdateThreadsAuto(CCmdUI *pCmdUI)
 {
 	if (thread_auto)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
-void CApplicationDlg::OnSolarization0()
-{
-	//pri zmene obrazka
-	if (m_threshold == 0 && !m_effect)
-	{
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-	//ked sa druhykrat klikne na to iste cislo, vypne sa efekt
-	if (m_threshold == 0 && m_effect)
-	{
-		m_effect = !m_effect;
-	}
-	//ked sa prechadza z jedneho cisla na druhe alebo sa klikne prvykrat
-	if (m_threshold!=0)
-	{
-		m_threshold = 0;
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnUpdateSolarization0(CCmdUI *pCmdUI)
-{
-	if (m_threshold==0 && m_effect)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
-
-void CApplicationDlg::OnSolarization50()
-{
-	if (m_threshold == 50 && !m_effect)
-	{
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-	if (m_threshold == 50 && m_effect)
-	{
-		m_effect = !m_effect;
-	}
-	if (m_threshold != 50)
-	{
-		m_threshold = 50;
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnUpdateSolarization50(CCmdUI *pCmdUI)
-{
-	if (m_threshold == 50 && m_effect)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
-
-void CApplicationDlg::OnSolarization100()
-{
-	if (m_threshold == 100 && !m_effect)
-	{
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-	if (m_threshold == 100 && m_effect)
-	{
-		m_effect = !m_effect;
-	}
-	if (m_threshold != 100)
-	{
-		m_threshold = 100;
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnUpdateSolarization100(CCmdUI *pCmdUI)
-{
-	if (m_threshold == 100 && m_effect)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
-
-void CApplicationDlg::OnSolarization150()
-{
-	if (m_threshold == 150 && !m_effect)
-	{
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-	if (m_threshold == 150 && m_effect)
-	{
-		m_effect = !m_effect;
-	}
-	if (m_threshold != 150)
-	{
-		m_threshold = 150;
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnUpdateSolarization150(CCmdUI *pCmdUI)
-{
-	if (m_threshold == 150 && m_effect)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
-
-void CApplicationDlg::OnSolarization200()
-{
-	if (m_threshold == 200 && !m_effect)
-	{
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-	if (m_threshold == 200 && m_effect)
-	{
-		m_effect = !m_effect;
-	}
-	if (m_threshold != 200)
-	{
-		m_threshold = 200;
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-
-	Invalidate();
-}
-
-
-void CApplicationDlg::OnUpdateSolarization200(CCmdUI *pCmdUI)
-{
-	if (m_threshold == 200 && m_effect)
-	{
-		pCmdUI->SetCheck(1);
-	}
-	else
-	{
-		pCmdUI->SetCheck(0);
-	}
-}
-
-
-void CApplicationDlg::OnSolarization255()
-{
-	if (m_threshold == 255 && !m_effect)
-	{
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-	if (m_threshold == 255 && m_effect)
-	{
-		m_effect = !m_effect;
-	}
-	if (m_threshold != 255)
-	{
-		m_threshold = 255;
-		m_effect = true;
-		m_thread_id = std::this_thread::get_id();
-		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
-	}
-
-	Invalidate();
-
-}
-
-void CApplicationDlg::OnUpdateSolarization255(CCmdUI *pCmdUI)
-{
-	if (m_threshold == 255 && m_effect)
 	{
 		pCmdUI->SetCheck(1);
 	}

@@ -26,8 +26,7 @@ public:
 
 // Implementation
 
-	DECLARE_MESSAGE_MAP()
-	afx_msg void OnEfektSolarization();
+	DECLARE_MESSAGE_MAP();
 };
 
 extern CApplicationApp theApp;

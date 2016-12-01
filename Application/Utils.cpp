@@ -112,7 +112,7 @@ namespace Utils
 		return;
 	}
 
-	void ThreadEffectCalc(Gdiplus::BitmapData *bmpData, Gdiplus::BitmapData *bmpDataEffect, int threshold,int Start,int End,int Width, std::function<bool()> fnCancel)
+	void ThreadEffectCalc(Gdiplus::BitmapData *bmpData, Gdiplus::BitmapData *bmpDataEffect, int threshold,int Start,int End,int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas,std::function<bool()> fnCancel)
 	{
 		uint32_t *pLine = (uint32_t*)((uint8_t*)bmpData->Scan0);
 		uint32_t *pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0);
@@ -138,6 +138,10 @@ namespace Utils
 				{
 					b = 255 - b;
 				}
+				red[r]++;
+				green[g]++;
+				blue[b]++;
+				jas[0.2126 * r + 0.7152 * g + 0.0722 * b]++;
 				*pLine2 = ((r << 16) & 0xff0000) | ((g << 8) & 0xff00) | (b & 0xff);
 				pLine++;
 				pLine2++;
@@ -147,10 +151,26 @@ namespace Utils
 		return;
 	}
 
-	void Solarization(bool m_effect, int m_threshold, int num, Gdiplus::Bitmap* &m_pBitmap, Gdiplus::Bitmap* &m_pBitmap_effect, std::function<bool()> fnCancel)
+	void Solarization(bool m_effect, int m_threshold, int num, Gdiplus::Bitmap* &m_pBitmap, Gdiplus::Bitmap* &m_pBitmap_effect, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
 	{
 		if (m_effect) {
 			std::vector<std::thread> threads;
+			std::vector<std::vector<int> > reds(num, std::vector<int>(256));
+			std::vector<std::vector<int> > greens(num, std::vector<int>(256));
+			std::vector<std::vector<int> > blues(num, std::vector<int>(256));
+			std::vector<std::vector<int> > jass(num, std::vector<int>(256));
+			for (int i = 0; i < num; i++)
+			{
+				reds[i].clear();
+				greens[i].clear();
+				blues[i].clear();
+				jass[i].clear();
+
+				reds[i].assign(256, 0);
+				greens[i].assign(256, 0);
+				blues[i].assign(256, 0);
+				jass[i].assign(256, 0);
+			}
 			
 			Gdiplus::Rect ret(0, 0, m_pBitmap->GetWidth(), m_pBitmap->GetHeight());
 			Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
@@ -165,16 +185,35 @@ namespace Utils
 			{
 				if (i != num - 1)
 				{
-					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,std::ref(bmpData), std::ref(bmpDataEffect), m_threshold, i*(Height / num), (i + 1) *(Height / num), Width,fnCancel)));
+					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,std::ref(bmpData), std::ref(bmpDataEffect), m_threshold, i*(Height / num), (i + 1) *(Height / num), Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]),fnCancel)));
 				}
 				else
 				{
-					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,bmpData, bmpDataEffect, m_threshold, i*(Height / num), Height, Width,fnCancel)));
+					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,bmpData, bmpDataEffect, m_threshold, i*(Height / num), Height, Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]),fnCancel)));
 				}
 			}
 			for (int i = 0; i < num; i++)
 			{
 				threads[i].join();
+			}
+			red.clear();
+			green.clear();
+			blue.clear();
+			jas.clear();
+
+			red.assign(256, 0);
+			green.assign(256, 0);
+			blue.assign(256, 0);
+			jas.assign(256, 0);
+			for (int i = 0; i <= 255; i++)
+			{
+				for (int j = 0; j < num; j++)
+				{
+					red[i] = red[i] + reds[j][i];
+					green[i] = green[i] + greens[j][i];
+					blue[i] = blue[i] + blues[j][i];
+					jas[i] = jas[i] + jass[j][i];
+				}
 			}
 
 			m_pBitmap_effect->UnlockBits(bmpDataEffect);
