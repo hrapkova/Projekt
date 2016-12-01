@@ -1,4 +1,3 @@
-
 // ApplicationDlg.cpp : implementation file
 //
 
@@ -674,7 +673,7 @@ LRESULT CApplicationDlg::OnKickIdle(WPARAM wParam, LPARAM lParam)
 
 namespace
 {	
-	void LoadAndCount(int thread_num, Gdiplus::Bitmap* &pBitmap, CString fileName, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
+	void LoadAndCount(int thread_num, Gdiplus::Bitmap* &pBitmap, CString fileName,std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
 	{
 		pBitmap = Gdiplus::Bitmap::FromFile(fileName);
 		//vektory vysledne
@@ -703,11 +702,12 @@ LRESULT CApplicationDlg::OnSetBitmap(WPARAM wParam, LPARAM lParam)
 {
 	//dopln kontrolu ako vo funkcii odkial sa vola OnSetBitmap
 	auto ptuple = (std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&>*)(wParam);
-	m_pBitmap = std::get<0>(*ptuple);
-	m_vHistRed = std::move(std::get<1>(*ptuple));
-	m_vHistGreen = std::move(std::get<2>(*ptuple));
-	m_vHistBlue = std::move(std::get<3>(*ptuple));
-	m_vHistJas = std::move(std::get<4>(*ptuple));
+	    m_pBitmap = std::get<0>(*ptuple);
+		m_pBitmap_effect = std::get<0>(*ptuple);
+		m_vHistRed = std::move(std::get<1>(*ptuple));
+		m_vHistGreen = std::move(std::get<2>(*ptuple));
+		m_vHistBlue = std::move(std::get<3>(*ptuple));
+		m_vHistJas = std::move(std::get<4>(*ptuple));
 
 	m_ctrlImage.Invalidate();
 	m_ctrlHistogram.Invalidate();
@@ -766,6 +766,7 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 
 	if (!csFileName.IsEmpty())
 	{
+		m_effect = false;
 		std::thread thread(&CApplicationDlg::SingleThread, this, csFileName);
 		thread.detach();
 	}
@@ -1041,68 +1042,38 @@ void CApplicationDlg::OnUpdateThreadsAuto(CCmdUI *pCmdUI)
 	}
 }
 
-void CApplicationDlg::Solarization()
-{
-	if (m_effect) {
-		m_effect = true;
-		Gdiplus::Rect ret(0, 0, m_pBitmap->GetWidth(), m_pBitmap->GetHeight());
-
-		Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
-		Gdiplus::BitmapData *bmpDataEffect = new Gdiplus::BitmapData();
-		m_pBitmap_effect = m_pBitmap->Clone(ret, PixelFormat32bppRGB);
-		m_pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
-		m_pBitmap_effect->LockBits(&ret, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, bmpDataEffect);
-
-		uint32_t *pLine = (uint32_t*)((uint8_t*)bmpData->Scan0);
-		uint32_t *pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0);
-		for (int y = 0; y < m_pBitmap->GetHeight(); y++)
-		{
-			pLine = (uint32_t*)((uint8_t*)bmpData->Scan0 + bmpData->Stride*y);
-			pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0 + bmpDataEffect->Stride*y);
-			for (int x = 0; x < m_pBitmap->GetWidth(); x++)
-			{
-				int r = 255 - (((*pLine) >> 16) & 0xff);
-				int g = 255 - (((*pLine) >> 8) & 0xff);
-				int b = 255 - ((*pLine) & 0xff);
-				if (r != m_threshold)
-				{
-					r = 255 - r;
-				}
-				if (g != m_threshold)
-				{
-					g = 255 - g;
-				}
-				if (b != m_threshold)
-				{
-					b = 255 - b;
-				}
-				*pLine2 = ((r << 16) & 0xff0000) | ((g << 8) & 0xff00) | (b & 0xff);
-				//m_pBitmap_effect->SetPixel(x, y, RGB(r, g, b));
-				pLine++;
-				pLine2++;
-			}
-		}
-
-		m_pBitmap->UnlockBits(bmpData);
-		m_pBitmap_effect->UnlockBits(bmpDataEffect);
-	}
-	m_ctrlImage.Invalidate();
-}
-
 void CApplicationDlg::OnSolarization0()
 {
-	m_threshold = 0;
-	m_effect = !m_effect;
-	Solarization();
+	//pri zmene obrazka
+	if (m_threshold == 0 && !m_effect)
+	{
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+	//ked sa druhykrat klikne na to iste cislo, vypne sa efekt
+	if (m_threshold == 0 && m_effect)
+	{
+		m_effect = !m_effect;
+	}
+	//ked sa prechadza z jedneho cisla na druhe alebo sa klikne prvykrat
+	if (m_threshold!=0)
+	{
+		m_threshold = 0;
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+
 	Invalidate();
 }
 
 
 void CApplicationDlg::OnUpdateSolarization0(CCmdUI *pCmdUI)
 {
-	m_effect = !m_effect;
-	pCmdUI->Enable(m_pBitmap != NULL);
-	if (m_threshold==0)
+	if (m_threshold==0 && m_effect)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1115,18 +1086,33 @@ void CApplicationDlg::OnUpdateSolarization0(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnSolarization50()
 {
-	m_threshold = 50;
-	m_effect = !m_effect;
-	Solarization();
+	if (m_threshold == 50 && !m_effect)
+	{
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+	if (m_threshold == 50 && m_effect)
+	{
+		m_effect = !m_effect;
+	}
+	if (m_threshold != 50)
+	{
+		m_threshold = 50;
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+
 	Invalidate();
 }
 
 
 void CApplicationDlg::OnUpdateSolarization50(CCmdUI *pCmdUI)
 {
-	m_effect = !m_effect;
-	pCmdUI->Enable(m_pBitmap != NULL);
-	if (m_threshold == 50)
+	if (m_threshold == 50 && m_effect)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1139,18 +1125,33 @@ void CApplicationDlg::OnUpdateSolarization50(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnSolarization100()
 {
-	m_threshold = 100;
-	m_effect = !m_effect;
-	Solarization();
+	if (m_threshold == 100 && !m_effect)
+	{
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+	if (m_threshold == 100 && m_effect)
+	{
+		m_effect = !m_effect;
+	}
+	if (m_threshold != 100)
+	{
+		m_threshold = 100;
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+
 	Invalidate();
 }
 
 
 void CApplicationDlg::OnUpdateSolarization100(CCmdUI *pCmdUI)
 {
-	m_effect = !m_effect;
-	pCmdUI->Enable(m_pBitmap != NULL);
-	if (m_threshold == 100)
+	if (m_threshold == 100 && m_effect)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1163,18 +1164,33 @@ void CApplicationDlg::OnUpdateSolarization100(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnSolarization150()
 {
-	m_threshold = 150;
-	m_effect = !m_effect;
-	Solarization();
+	if (m_threshold == 150 && !m_effect)
+	{
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+	if (m_threshold == 150 && m_effect)
+	{
+		m_effect = !m_effect;
+	}
+	if (m_threshold != 150)
+	{
+		m_threshold = 150;
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+
 	Invalidate();
 }
 
 
 void CApplicationDlg::OnUpdateSolarization150(CCmdUI *pCmdUI)
 {
-	m_effect = !m_effect;
-	pCmdUI->Enable(m_pBitmap != NULL);
-	if (m_threshold == 150)
+	if (m_threshold == 150 && m_effect)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1187,18 +1203,33 @@ void CApplicationDlg::OnUpdateSolarization150(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnSolarization200()
 {
-	m_threshold = 200;
-	m_effect = !m_effect;
-	Solarization();
+	if (m_threshold == 200 && !m_effect)
+	{
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+	if (m_threshold == 200 && m_effect)
+	{
+		m_effect = !m_effect;
+	}
+	if (m_threshold != 200)
+	{
+		m_threshold = 200;
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+
 	Invalidate();
 }
 
 
 void CApplicationDlg::OnUpdateSolarization200(CCmdUI *pCmdUI)
 {
-	m_effect = !m_effect;
-	pCmdUI->Enable(m_pBitmap != NULL);
-	if (m_threshold == 200)
+	if (m_threshold == 200 && m_effect)
 	{
 		pCmdUI->SetCheck(1);
 	}
@@ -1211,16 +1242,32 @@ void CApplicationDlg::OnUpdateSolarization200(CCmdUI *pCmdUI)
 
 void CApplicationDlg::OnSolarization255()
 {
-	m_threshold = 255;
-	m_effect = !m_effect;
-	Solarization();
-	Invalidate();
-}
+	if (m_threshold == 255 && !m_effect)
+	{
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
+	if (m_threshold == 255 && m_effect)
+	{
+		m_effect = !m_effect;
+	}
+	if (m_threshold != 255)
+	{
+		m_threshold = 255;
+		m_effect = true;
+		m_thread_id = std::this_thread::get_id();
+		auto t = std::this_thread::get_id();
+		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, [this, t]() {return m_thread_id != t; });
+	}
 
+	Invalidate();
+
+}
 
 void CApplicationDlg::OnUpdateSolarization255(CCmdUI *pCmdUI)
 {
-	pCmdUI->Enable(m_pBitmap != NULL);
 	if (m_threshold == 255 && m_effect)
 	{
 		pCmdUI->SetCheck(1);

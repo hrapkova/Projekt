@@ -65,6 +65,10 @@ protected:
 	bool thread_auto = false;
 	double m_threshold;
 	bool m_effect = false;
+	std::vector<int> m_vHistRed_effect;
+	std::vector<int> m_vHistGreen_effect;
+	std::vector<int> m_vHistBlue_effect;
+	std::vector<int> m_vHistJas_effect;
 
 	// Generated message map functions
 	BOOL OnInitDialog() override;
@@ -144,5 +148,4 @@ public:
 	afx_msg void OnUpdateSolarization200(CCmdUI *pCmdUI);
 	afx_msg void OnSolarization255();
 	afx_msg void OnUpdateSolarization255(CCmdUI *pCmdUI);
-	afx_msg void Solarization();
 };

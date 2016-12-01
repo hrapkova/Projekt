@@ -111,4 +111,76 @@ namespace Utils
 
 		return;
 	}
+
+	void ThreadEffectCalc(Gdiplus::BitmapData *bmpData, Gdiplus::BitmapData *bmpDataEffect, int threshold,int Start,int End,int Width, std::function<bool()> fnCancel)
+	{
+		uint32_t *pLine = (uint32_t*)((uint8_t*)bmpData->Scan0);
+		uint32_t *pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0);
+		for (int y = Start; y < End; y++)
+		{
+			if (fnCancel()) { return; }
+			pLine = (uint32_t*)((uint8_t*)bmpData->Scan0 + bmpData->Stride*y);
+			pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0 + bmpDataEffect->Stride*y);
+			for (int x = 0; x < Width; x++)
+			{
+				int r = (((*pLine) >> 16) & 0xff);
+				int g = (((*pLine) >> 8) & 0xff);
+				int b = ((*pLine) & 0xff);
+				if (r != threshold)
+				{
+					r = 255 - r;
+				}
+				if (g != threshold)
+				{
+					g = 255 - g;
+				}
+				if (b != threshold)
+				{
+					b = 255 - b;
+				}
+				*pLine2 = ((r << 16) & 0xff0000) | ((g << 8) & 0xff00) | (b & 0xff);
+				pLine++;
+				pLine2++;
+			}
+		}
+
+		return;
+	}
+
+	void Solarization(bool m_effect, int m_threshold, int num, Gdiplus::Bitmap* &m_pBitmap, Gdiplus::Bitmap* &m_pBitmap_effect, std::function<bool()> fnCancel)
+	{
+		if (m_effect) {
+			std::vector<std::thread> threads;
+			
+			Gdiplus::Rect ret(0, 0, m_pBitmap->GetWidth(), m_pBitmap->GetHeight());
+			Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
+			Gdiplus::BitmapData *bmpDataEffect = new Gdiplus::BitmapData();
+			m_pBitmap_effect = m_pBitmap->Clone(ret, PixelFormat32bppRGB);
+			auto yyy = m_pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
+			auto xxx = m_pBitmap_effect->LockBits(&ret, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, bmpDataEffect);
+
+			int Height = m_pBitmap->GetHeight();
+			int Width = m_pBitmap->GetWidth();
+			for (int i = 0; i < num; i++)
+			{
+				if (i != num - 1)
+				{
+					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,std::ref(bmpData), std::ref(bmpDataEffect), m_threshold, i*(Height / num), (i + 1) *(Height / num), Width,fnCancel)));
+				}
+				else
+				{
+					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,bmpData, bmpDataEffect, m_threshold, i*(Height / num), Height, Width,fnCancel)));
+				}
+			}
+			for (int i = 0; i < num; i++)
+			{
+				threads[i].join();
+			}
+
+			m_pBitmap_effect->UnlockBits(bmpDataEffect);
+			m_pBitmap->UnlockBits(bmpData);
+		}
+
+		return;
+	}
 }
