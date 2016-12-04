@@ -158,7 +158,7 @@ namespace UnitTest
 				}
 			}
 
-			//biela -> biela
+			//biela -> biela 
 			auto t = std::this_thread::get_id();
 			Solarization(true, 255, 1, pBitmap, 256*4,pBitmapEffect, 256*4,256,256,red1, green1, blue1, jas1, [this, t]() {return false; });
 			for (int i = 0; i <= 255; i++)

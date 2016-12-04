@@ -948,7 +948,7 @@ template<int threshold> void CApplicationDlg::OnSolarization()
 	}
 	else
 	{
-		m_threshold = threshold;
+		m_threshold = threshold; 
 		m_effect = true;
 		m_thread_id = std::this_thread::get_id();
 		auto t = std::this_thread::get_id();

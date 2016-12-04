@@ -154,7 +154,7 @@ namespace Utils
 	void Solarization(bool m_effect, int m_threshold, int num, void* Scan0, int Stride, void* Scan02, int Stride2,int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
 	{
 		if (m_effect) {
-			std::vector<std::thread> threads;
+			std::vector<std::thread> threads; 
 			std::vector<std::vector<int> > reds(num, std::vector<int>(256));
 			std::vector<std::vector<int> > greens(num, std::vector<int>(256));
 			std::vector<std::vector<int> > blues(num, std::vector<int>(256));

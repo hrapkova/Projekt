@@ -5,7 +5,7 @@
 // LIBRARY_API functions as being imported from a DLL, whereas this DLL sees symbols
 // defined with this macro as being exported.
 #ifdef LIBRARY_EXPORTS
-#define LIBRARY_API __declspec(dllexport)
+#define LIBRARY_API __declspec(dllexport) 
 #else
 #define LIBRARY_API __declspec(dllimport)
 #endif
