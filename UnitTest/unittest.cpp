@@ -126,4 +126,169 @@ namespace UnitTest
 		}
 
 	};
+
+	TEST_CLASS(SolarizationTest)
+	{
+	public:
+		TEST_METHOD(EffectTest)
+		{
+			std::vector<int> red, green, blue, jas;
+			std::vector<int> red1, green1, blue1, jas1;
+			red.assign(256, 0);
+			green.assign(256, 0);
+			blue.assign(256, 0);
+			jas.assign(256, 0);
+			red1.assign(256, 0);
+			green1.assign(256, 0);
+			blue1.assign(256, 0);
+			jas1.assign(256, 0);
+
+			UINT32 pBitmap[256][256];
+			UINT32 pBitmapEffect[256][256];
+			memset(pBitmap, 0, sizeof(UINT32) * (256 * 256));
+			memset(pBitmapEffect, 0, sizeof(UINT32) * (256 * 256));
+
+			for (int i = 0; i < 256; i++)
+			{
+				for (int j = 0; j < 256; j++)
+				{
+					//biela
+					pBitmap[i][j] = 0xffffffff;
+					pBitmapEffect[i][j] = 0xffffffff;
+				}
+			}
+
+			//biela -> biela
+			auto t = std::this_thread::get_id();
+			Solarization(true, 255, 1, pBitmap, 256*4,pBitmapEffect, 256*4,256,256,red1, green1, blue1, jas1, [this, t]() {return false; });
+			for (int i = 0; i <= 255; i++)
+			{
+				if (i == 255)
+				{
+					Assert::AreEqual(red1[i], 256*256, L"cerveny255");
+					Assert::AreEqual(green1[i], 256*256, L"zeleny255");
+					Assert::AreEqual(blue1[i], 256*256, L"modry255");
+				}
+				else
+				{
+					Assert::AreEqual(red1[i], 0, L"cerveny0");
+					Assert::AreEqual(green1[i], 0, L"zeleny0");
+					Assert::AreEqual(blue1[i], 0, L"modry0");
+				}
+			}
+
+			//biela -> biela pri 12 threadoch
+			auto tt = std::this_thread::get_id();
+			Solarization(true, 255, 12, pBitmap, 256 * 4, pBitmapEffect, 256 * 4, 256, 256, red1, green1, blue1, jas1, [this, tt]() {return false; });
+			for (int i = 0; i <= 255; i++)
+			{
+				if (i == 255)
+				{
+					Assert::AreEqual(red1[i], 256 * 256, L"cerveny255");
+					Assert::AreEqual(green1[i], 256 * 256, L"zeleny255");
+					Assert::AreEqual(blue1[i], 256 * 256, L"modry255");
+				}
+				else
+				{
+					Assert::AreEqual(red1[i], 0, L"cerveny0");
+					Assert::AreEqual(green1[i], 0, L"zeleny0");
+					Assert::AreEqual(blue1[i], 0, L"modry0");
+				}
+			}
+
+		}
+	};
+
+	TEST_CLASS(ThreadEffectFunTest)
+	{
+	public:
+		TEST_METHOD(ThreadEffectCalcTest)
+		{
+			std::vector<int> red, green, blue, jas;
+			std::vector<int> redFinal, greenFinal, blueFinal, jasFinal;
+			red.assign(256, 0);
+			green.assign(256, 0);
+			blue.assign(256, 0);
+			jas.assign(256, 0);
+			redFinal.assign(256, 0);
+			greenFinal.assign(256, 0);
+			blueFinal.assign(256, 0);
+			jasFinal.assign(256, 0);
+
+			int num = 3;
+			std::vector<std::vector<int> > reds(num, std::vector<int>(256));
+			std::vector<std::vector<int> > greens(num, std::vector<int>(256));
+			std::vector<std::vector<int> > blues(num, std::vector<int>(256));
+			std::vector<std::vector<int> > jass(num, std::vector<int>(256));
+			for (int i = 0; i < num; i++)
+			{
+				reds[i].clear();
+				greens[i].clear();
+				blues[i].clear();
+				jass[i].clear();
+
+				reds[i].assign(256, 0);
+				greens[i].assign(256, 0);
+				blues[i].assign(256, 0);
+				jass[i].assign(256, 0);
+			}
+
+			UINT32 pBitmap[256][256];
+			UINT32 pBitmapEffect[256][256];
+			memset(pBitmap, 0, sizeof(UINT32) * (256 * 256));
+			memset(pBitmapEffect, 0, sizeof(UINT32) * (256 * 256));
+
+			for (int i = 0; i < 256; i++)
+			{
+				for (int j = 0; j < 256; j++)
+				{
+					//biela
+					pBitmap[i][j] = 0xffffffff;
+					pBitmapEffect[i][j] = 0xffffffff;
+				}
+			}
+
+			//biela -> biela
+			auto t = std::this_thread::get_id();
+			Solarization(true, 255, num, pBitmap, 256 * 4, pBitmapEffect, 256 * 4, 256, 256, red, green, blue, jas, [this, t]() {return false; });
+			
+			for (int i = 0; i < num; i++)
+			{
+				if (i != num - 1)
+				{
+					ThreadEffectCalc(pBitmap, 256 * 4, pBitmapEffect, 256 * 4, 255, i*(256 / num), (i + 1) *(256 / num), 256, reds[i], greens[i], blues[i], jass[i], [this, t]() {return false; });
+				}
+				else
+				{
+					ThreadEffectCalc(pBitmap, 256 * 4, pBitmapEffect, 256 * 4, 255, i*(256 / num), 256, 256, reds[i], greens[i], blues[i], jass[i], [this, t]() {return false; });
+				}
+			}
+			for (int i = 0; i <= 255; i++)
+			{
+				for (int j = 0; j < num; j++)
+				{
+					redFinal[i] = redFinal[i] + reds[j][i];
+					greenFinal[i] = greenFinal[i] + greens[j][i];
+					blueFinal[i] = blueFinal[i] + blues[j][i];
+					jasFinal[i] = jasFinal[i] + jass[j][i];
+				}
+			}
+
+			for (int i = 0; i <= 255; i++)
+			{
+				if (i == 255)
+				{
+					Assert::AreEqual(red[i], redFinal[i], L"cerveny255");
+					Assert::AreEqual(green[i], greenFinal[i], L"zeleny255");
+					Assert::AreEqual(blue[i], blueFinal[i], L"modry255");
+				}
+				else
+				{
+					Assert::AreEqual(red[i], redFinal[i], L"cerveny0");
+					Assert::AreEqual(green[i], greenFinal[i], L"zeleny0");
+					Assert::AreEqual(blue[i], blueFinal[i], L"modry0");
+				}
+			}
+		}
+	};
 }

@@ -112,15 +112,15 @@ namespace Utils
 		return;
 	}
 
-	void ThreadEffectCalc(Gdiplus::BitmapData *bmpData, Gdiplus::BitmapData *bmpDataEffect, int threshold,int Start,int End,int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas,std::function<bool()> fnCancel)
+	void ThreadEffectCalc(void* Scan0, int Stride, void* Scan02, int Stride2,int threshold,int Start,int End,int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas,std::function<bool()> fnCancel)
 	{
-		uint32_t *pLine = (uint32_t*)((uint8_t*)bmpData->Scan0);
-		uint32_t *pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0);
+		uint32_t *pLine = (uint32_t*)Scan0;
+		uint32_t *pLine2 = (uint32_t*)Scan02;
 		for (int y = Start; y < End; y++)
 		{
 			if (fnCancel()) { return; }
-			pLine = (uint32_t*)((uint8_t*)bmpData->Scan0 + bmpData->Stride*y);
-			pLine2 = (uint32_t*)((uint8_t*)bmpDataEffect->Scan0 + bmpDataEffect->Stride*y);
+			pLine = (uint32_t*)((uint8_t*)Scan0 + Stride*y);
+			pLine2 = (uint32_t*)((uint8_t*)Scan02 + Stride2*y);
 			for (int x = 0; x < Width; x++)
 			{
 				int r = (((*pLine) >> 16) & 0xff);
@@ -151,7 +151,7 @@ namespace Utils
 		return;
 	}
 
-	void Solarization(bool m_effect, int m_threshold, int num, Gdiplus::Bitmap* &m_pBitmap, Gdiplus::Bitmap* &m_pBitmap_effect, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
+	void Solarization(bool m_effect, int m_threshold, int num, void* Scan0, int Stride, void* Scan02, int Stride2,int Height, int Width, std::vector<int>& red, std::vector<int>& green, std::vector<int>& blue, std::vector<int>& jas, std::function<bool()> fnCancel)
 	{
 		if (m_effect) {
 			std::vector<std::thread> threads;
@@ -171,25 +171,16 @@ namespace Utils
 				blues[i].assign(256, 0);
 				jass[i].assign(256, 0);
 			}
-			
-			Gdiplus::Rect ret(0, 0, m_pBitmap->GetWidth(), m_pBitmap->GetHeight());
-			Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
-			Gdiplus::BitmapData *bmpDataEffect = new Gdiplus::BitmapData();
-			m_pBitmap_effect = m_pBitmap->Clone(ret, PixelFormat32bppRGB);
-			auto yyy = m_pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
-			auto xxx = m_pBitmap_effect->LockBits(&ret, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, bmpDataEffect);
 
-			int Height = m_pBitmap->GetHeight();
-			int Width = m_pBitmap->GetWidth();
 			for (int i = 0; i < num; i++)
 			{
 				if (i != num - 1)
 				{
-					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,std::ref(bmpData), std::ref(bmpDataEffect), m_threshold, i*(Height / num), (i + 1) *(Height / num), Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]),fnCancel)));
+					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,std::ref(Scan0), Stride, std::ref(Scan02), Stride2, m_threshold, i*(Height / num), (i + 1) *(Height / num), Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]),fnCancel)));
 				}
 				else
 				{
-					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc,bmpData, bmpDataEffect, m_threshold, i*(Height / num), Height, Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]),fnCancel)));
+					threads.push_back(std::move(std::thread(&Utils::ThreadEffectCalc, std::ref(Scan0), Stride, std::ref(Scan02), Stride2, m_threshold, i*(Height / num), Height, Width, std::ref(reds[i]), std::ref(greens[i]), std::ref(blues[i]), std::ref(jass[i]),fnCancel)));
 				}
 			}
 			for (int i = 0; i < num; i++)
@@ -215,9 +206,6 @@ namespace Utils
 					jas[i] = jas[i] + jass[j][i];
 				}
 			}
-
-			m_pBitmap_effect->UnlockBits(bmpDataEffect);
-			m_pBitmap->UnlockBits(bmpData);
 		}
 
 		return;

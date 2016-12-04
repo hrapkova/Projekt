@@ -371,49 +371,6 @@ LRESULT CApplicationDlg::OnDrawHistogram(WPARAM wParam, LPARAM lParam)
 	if(!m_effect)
 	{
 		LogAxY(pDC, &rect, m_vHistRed, m_vHistGreen, m_vHistBlue, m_vHistJas);
-		/*if (m_vHistRed.size() != 0 && m_vHistGreen.size() != 0 && m_vHistBlue.size() != 0 && m_vHistJas.size() != 0)
-		{
-			int max = 0;
-			for (int i = 0; i <= 255; i++)
-			{
-				if (m_vHistRed[i] > max)
-				{
-					max = m_vHistRed[i];
-				}
-				if (m_vHistGreen[i] > max)
-				{
-					max = m_vHistGreen[i];
-				}
-				if (m_vHistBlue[i] > max)
-				{
-					max = m_vHistBlue[i];
-				}
-				if (m_vHistJas[i] > max)
-				{
-					max = m_vHistJas[i];
-				}
-			}
-			double sirka = (double)rect.Width() / 256.;
-			double vyska = (double)rect.Height() / log10(max);
-
-			if (m_bHistRed)
-			{
-				DrawHist(pDC, sirka, vyska, m_vHistRed, RGB(255, 0, 0));
-			}
-			if (m_bHistGreen)
-			{
-				DrawHist(pDC, sirka, vyska, m_vHistGreen, RGB(0, 255, 0));
-			}
-			if (m_bHistBlue)
-			{
-				DrawHist(pDC, sirka, vyska, m_vHistBlue, RGB(0, 0, 255));
-			}
-			if (m_bHistJas)
-			{
-				DrawHist(pDC, sirka, vyska, m_vHistJas, RGB(0, 0, 0));
-			}
-
-		}*/
 	}
 	else
 	{
@@ -712,22 +669,6 @@ void CApplicationDlg::OnUpdateFileClose(CCmdUI *pCmdUI)
 
 LRESULT CApplicationDlg::OnKickIdle(WPARAM wParam, LPARAM lParam)
 {
-	/*CMenu* pMainMenu = GetMenu();
-	CCmdUI cmdUI;
-	for (UINT n = 0; n < (UINT)pMainMenu->GetMenuItemCount(); ++n)
-	{
-		CMenu* pSubMenu = pMainMenu->GetSubMenu(n);
-		cmdUI.m_nIndexMax = pSubMenu->GetMenuItemCount();
-		for (UINT i = 0; i < cmdUI.m_nIndexMax; ++i)
-		{
-			cmdUI.m_nIndex = i;
-			cmdUI.m_nID = pSubMenu->GetMenuItemID(i);
-			cmdUI.m_pMenu = pSubMenu;
-			cmdUI.DoUpdate(this, FALSE);
-		}
-	}
-	return TRUE;*/
-
 	// stack for menu
 	std::vector<CMenu*> menus{ GetMenu() };    //starting with main menu
 
@@ -796,7 +737,6 @@ LRESULT CApplicationDlg::OnSetBitmap(WPARAM wParam, LPARAM lParam)
 	//dopln kontrolu ako vo funkcii odkial sa vola OnSetBitmap
 	auto ptuple = (std::tuple<Gdiplus::Bitmap*, std::vector<int>&, std::vector<int>&, std::vector<int>&, std::vector<int>&>*)(wParam);
 	    m_pBitmap = std::get<0>(*ptuple);
-		m_pBitmap_effect = std::get<0>(*ptuple);
 		m_vHistRed = std::move(std::get<1>(*ptuple));
 		m_vHistGreen = std::move(std::get<2>(*ptuple));
 		m_vHistBlue = std::move(std::get<3>(*ptuple));
@@ -1012,7 +952,18 @@ template<int threshold> void CApplicationDlg::OnSolarization()
 		m_effect = true;
 		m_thread_id = std::this_thread::get_id();
 		auto t = std::this_thread::get_id();
-		Utils::Solarization(m_effect, m_threshold, thread_num, m_pBitmap, m_pBitmap_effect, m_vHistRed_effect, m_vHistGreen_effect, m_vHistBlue_effect, m_vHistJas_effect, [this, t]() {return m_thread_id != t; });
+
+		Gdiplus::Rect ret(0, 0, m_pBitmap->GetWidth(), m_pBitmap->GetHeight());
+		Gdiplus::BitmapData *bmpData = new Gdiplus::BitmapData();
+		Gdiplus::BitmapData *bmpDataEffect = new Gdiplus::BitmapData();
+		m_pBitmap_effect = m_pBitmap->Clone(ret, PixelFormat32bppRGB);
+
+		auto yyy = m_pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
+		auto xxx = m_pBitmap_effect->LockBits(&ret, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, bmpDataEffect);
+		Utils::Solarization(m_effect, m_threshold, thread_num, bmpData->Scan0, bmpData->Stride,bmpDataEffect->Scan0,bmpDataEffect->Stride, m_pBitmap->GetHeight(), m_pBitmap->GetWidth(),m_vHistRed_effect, m_vHistGreen_effect, m_vHistBlue_effect, m_vHistJas_effect, [this, t]() {return m_thread_id != t; });
+		m_pBitmap_effect->UnlockBits(bmpDataEffect);
+
+		m_pBitmap->UnlockBits(bmpData);
 	}
 
 	Invalidate();
@@ -1033,7 +984,7 @@ template<int num> void CApplicationDlg::OnUpdateThreads(CCmdUI * pCmdUI)
 template<int num> void CApplicationDlg::OnThreads()
 {
 	thread_num = num;
-	thread_auto = true;
+	thread_auto = false;
 	Invalidate();
 }
 
