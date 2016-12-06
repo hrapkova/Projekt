@@ -63,7 +63,7 @@ protected:
 	std::atomic<std::thread::id> m_thread_id;
 	int thread_num = 1;
 	bool thread_auto = false;
-	double m_threshold;
+	int m_threshold;
 	bool m_effect = false;
 	std::vector<int> m_vHistRed_effect;
 	std::vector<int> m_vHistGreen_effect;

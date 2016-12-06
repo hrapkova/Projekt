@@ -296,12 +296,12 @@ void CApplicationDlg::OnDestroy()
 			{
 				if (vektor[i] == 0)
 				{
-					CRect rct(i*scaleX + 1, m_ptHistogram.y, (i + 1)*scaleX + 1, m_ptHistogram.y);
+					CRect rct(int(i*scaleX + 1), m_ptHistogram.y, int((i + 1)*scaleX + 1), m_ptHistogram.y);
 					pDC->FillSolidRect(rct, farba);
 				}
 				else
 				{
-					CRect rct(i*scaleX + 1,  m_ptHistogram.y - log10(vektor[i]) * scaleY, (i + 1)*scaleX + 1, m_ptHistogram.y);
+					CRect rct(int(i*scaleX + 1),  int(m_ptHistogram.y - log10(vektor[i]) * scaleY), int((i + 1)*scaleX + 1), m_ptHistogram.y);
 					pDC->FillSolidRect(rct, farba);
 				}
 			}
@@ -727,6 +727,7 @@ namespace
 		Utils::funkcia(thread_num, bmpData->Scan0, bmpData->Stride, ret.Height, ret.Width, red, green, blue, jas, fnCancel);
 
 		pBitmap->UnlockBits(bmpData);
+		delete bmpData;
 
 		return;
 	}
@@ -843,7 +844,7 @@ void CApplicationDlg::OnHistogramRed()
 
 void CApplicationDlg::OnUpdateHistogramRed(CCmdUI *pCmdUI)
 {
-	// kod, kt. zabezpeci zakazenie
+	pCmdUI->Enable(m_pBitmap != NULL);
 	if (m_bHistRed)
 	{
 		pCmdUI->SetCheck(1);
@@ -852,8 +853,6 @@ void CApplicationDlg::OnUpdateHistogramRed(CCmdUI *pCmdUI)
 	{
 		pCmdUI->SetCheck(0);
 	}
-
-	pCmdUI->Enable(m_pBitmap!=NULL);
 }
 
 
@@ -930,6 +929,7 @@ void CApplicationDlg::OnUpdateHistogramAlpha(CCmdUI *pCmdUI)
 
 template<int threshold> void CApplicationDlg::OnUpdateSolarization(CCmdUI * pCmdUI)
 {
+	pCmdUI->Enable(m_pBitmap != NULL);
 	if (m_threshold == threshold && m_effect)
 	{
 		pCmdUI->SetCheck(1);
@@ -960,10 +960,12 @@ template<int threshold> void CApplicationDlg::OnSolarization()
 
 		auto yyy = m_pBitmap->LockBits(&ret, Gdiplus::ImageLockModeRead, PixelFormat32bppRGB, bmpData);
 		auto xxx = m_pBitmap_effect->LockBits(&ret, Gdiplus::ImageLockModeWrite, PixelFormat32bppRGB, bmpDataEffect);
-		Utils::Solarization(m_effect, m_threshold, thread_num, bmpData->Scan0, bmpData->Stride,bmpDataEffect->Scan0,bmpDataEffect->Stride, m_pBitmap->GetHeight(), m_pBitmap->GetWidth(),m_vHistRed_effect, m_vHistGreen_effect, m_vHistBlue_effect, m_vHistJas_effect, [this, t]() {return m_thread_id != t; });
+		Utils::Solarization(m_effect, m_threshold, thread_num, bmpData->Scan0,bmpData->Stride,bmpDataEffect->Scan0,bmpDataEffect->Stride, m_pBitmap->GetHeight(), m_pBitmap->GetWidth(),m_vHistRed_effect, m_vHistGreen_effect, m_vHistBlue_effect, m_vHistJas_effect, [this, t]() {return m_thread_id != t; });
 		m_pBitmap_effect->UnlockBits(bmpDataEffect);
 
 		m_pBitmap->UnlockBits(bmpData);
+		delete bmpData;
+		delete bmpDataEffect;
 	}
 
 	Invalidate();
