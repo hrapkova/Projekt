@@ -209,7 +209,7 @@ namespace
 
 CApplicationDlg::CApplicationDlg(CWnd* pParent /*=NULL*/)
 	: CDialogEx(IDD_APPLICATION_DIALOG, pParent)
-	, m_pBitmap(nullptr)
+	, m_pBitmap(nullptr), m_pBitmap_effect(nullptr)
 {
 	m_hIcon = AfxGetApp()->LoadIcon(IDR_MAINFRAME);
 
@@ -628,6 +628,11 @@ void CApplicationDlg::OnFileOpen()
 			delete m_pBitmap;
 			m_pBitmap = nullptr;
 		}
+		if (m_pBitmap_effect != nullptr)
+		{
+			delete m_pBitmap_effect;
+			m_pBitmap_effect = nullptr;
+		}
 		m_ctrlImage.Invalidate();
 		m_ctrlHistogram.Invalidate();
 
@@ -793,6 +798,11 @@ void CApplicationDlg::OnLvnItemchangedFileList(NMHDR *pNMHDR, LRESULT *pResult)
 		delete m_pBitmap;
 		m_pBitmap = nullptr;
 	}
+	if (m_pBitmap_effect != nullptr)
+	{
+		delete m_pBitmap_effect;
+		m_pBitmap_effect = nullptr;
+	}
 	CString csFileName;
 	POSITION pos = m_ctrlFileList.GetFirstSelectedItemPosition();
 	if (pos)
@@ -945,11 +955,21 @@ template<int threshold> void CApplicationDlg::OnSolarization()
 	if (m_threshold == threshold && m_effect)
 	{
 		m_effect = !m_effect;
+		if (m_pBitmap_effect != nullptr)
+		{
+			delete m_pBitmap_effect;
+			m_pBitmap_effect = nullptr;
+		}
 	}
 	else
 	{
 		m_threshold = threshold; 
 		m_effect = true;
+		if (m_pBitmap_effect != nullptr)
+		{
+			delete m_pBitmap_effect;
+			m_pBitmap_effect = nullptr;
+		}
 		m_thread_id = std::this_thread::get_id();
 		auto t = std::this_thread::get_id();
 
