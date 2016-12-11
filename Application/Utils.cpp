@@ -55,7 +55,7 @@ namespace Utils
 				red[((*pLine) >> 16) & 0xff]++;
 				green[((*pLine) >> 8) & 0xff]++;
 				blue[(*pLine) & 0xff]++;
-				jas[0.2126 * (((*pLine) >> 16) & 0xff) + 0.7152 * (((*pLine) >> 8) & 0xff) + 0.0722 * ((*pLine) & 0xff)]++;
+				jas[int(0.2126 * (((*pLine) >> 16) & 0xff) + 0.7152 * (((*pLine) >> 8) & 0xff) + 0.0722 * ((*pLine) & 0xff))]++;
 				pLine++;
 			}
 		}
@@ -141,7 +141,7 @@ namespace Utils
 				red[r]++;
 				green[g]++;
 				blue[b]++;
-				jas[0.2126 * r + 0.7152 * g + 0.0722 * b]++;
+				jas[int(0.2126 * r + 0.7152 * g + 0.0722 * b)]++;
 				*pLine2 = ((r << 16) & 0xff0000) | ((g << 8) & 0xff00) | (b & 0xff);
 				pLine++;
 				pLine2++;
